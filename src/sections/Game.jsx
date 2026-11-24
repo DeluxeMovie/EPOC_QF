@@ -1,0 +1,312 @@
+import { useEffect, useMemo, useState } from 'react'
+import { RotateCcw, Star } from 'lucide-react'
+import { Band, Head, HowTo, Tri } from '../components/ui'
+import AlveolusZoom from '../components/AlveolusZoom'
+import AirwayCross from '../components/AirwayCross'
+import Lungs from '../components/Lungs'
+import { curveFor, SPIRO } from '../data/spirometry'
+import { fmt } from '../lib/physics'
+
+const ROUNDS = 8
+const LETTERS = ['A', 'B', 'C']
+const E = SPIRO.epoc
+const S = SPIRO.sano
+
+/* ───────── imágenes de cada pregunta ───────── */
+function Curves({ epocIsA, mark }) {
+  const W = 380, H = 230, M = { l: 44, r: 14, t: 14, b: 38 }
+  const X = (t) => M.l + (t / 14) * (W - M.l - M.r)
+  const Y = (v) => H - M.b - (v / 3.5) * (H - M.t - M.b)
+  const sano = curveFor('sano', 'pre')
+  const epoc = curveFor('epoc', 'pre')
+  const A = epocIsA ? epoc : sano
+  const B = epocIsA ? sano : epoc
+  const path = (f) => Array.from({ length: 141 }, (_, i) => `${i ? 'L' : 'M'}${X(i / 10).toFixed(1)} ${Y(f(i / 10)).toFixed(1)}`).join('')
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Gráfica de espirometría: aire sacado contra tiempo" className="block h-auto w-full">
+      {[0, 1, 2, 3].map((v) => (
+        <g key={v}><line x1={M.l} x2={W - M.r} y1={Y(v)} y2={Y(v)} stroke="#1f3342" /><text x={M.l - 8} y={Y(v) + 4} textAnchor="end" fontSize="12" fill="#94a3b8">{v}</text></g>
+      ))}
+      {[0, 2, 4, 6, 8, 10, 12, 14].map((v) => <text key={v} x={X(v)} y={H - M.b + 17} textAnchor="middle" fontSize="12" fill="#94a3b8">{v}</text>)}
+      <line x1={M.l} x2={W - M.r} y1={Y(0)} y2={Y(0)} stroke="#64748b" />
+      <line x1={M.l} x2={M.l} y1={M.t} y2={Y(0)} stroke="#64748b" />
+      <text x={(M.l + W - M.r) / 2} y={H - 6} textAnchor="middle" fontSize="12.5" fill="#cbd5e1">Segundos desde que empiezas a soplar</text>
+      <text transform={`rotate(-90 12 ${(M.t + H - M.b) / 2})`} x="12" y={(M.t + H - M.b) / 2} textAnchor="middle" fontSize="12.5" fill="#cbd5e1">Litros de aire sacados</text>
+      {mark ? (
+        <>
+          <path d={path(sano)} fill="none" stroke="#38bdf8" strokeWidth="4" strokeLinecap="round" />
+          <line x1={X(1)} x2={X(1)} y1={M.t} y2={Y(0)} stroke="#facc15" strokeDasharray="4 4" />
+          <circle cx={X(1)} cy={Y(sano(1))} r="8" fill="#facc15" stroke="#07131c" strokeWidth="3" />
+          <text x={X(1) + 12} y={Y(sano(1)) + 22} fontSize="14" fontWeight="700" fill="#facc15">punto a 1 s</text>
+        </>
+      ) : (
+        <>
+          <path d={path(A)} fill="none" stroke="#38bdf8" strokeWidth="4" strokeLinecap="round" />
+          <path d={path(B)} fill="none" stroke="#facc15" strokeWidth="4" strokeLinecap="round" />
+          <text x={X(13.9)} y={Y(A(13.9)) - 9} textAnchor="end" fontSize="15" fontWeight="800" fill="#38bdf8">Curva A</text>
+          <text x={X(13.9)} y={Y(B(13.9)) - 9} textAnchor="end" fontSize="15" fontWeight="800" fill="#facc15">Curva B</text>
+        </>
+      )}
+    </svg>
+  )
+}
+
+function Numbers({ rows }) {
+  return (
+    <dl className="grid grid-cols-[1fr_auto] items-baseline gap-x-6">
+      {rows.map(([k, v, c]) => [
+        <dt key={k} className="border-b border-white/10 py-3 text-slate-300">{k}</dt>,
+        <dd key={k + 'v'} className="border-b border-white/10 py-3 font-display text-5xl font-extrabold tabular-nums" style={{ color: c ?? '#fff' }}>{v}</dd>,
+      ])}
+    </dl>
+  )
+}
+
+function TwoAlveoli() {
+  return (
+    <svg viewBox="0 0 320 200" role="img" aria-label="Dos alvéolos con la misma tensión: uno pequeño (A) y uno grande (B)" className="block h-auto w-full">
+      <g fill="#0e7490" fillOpacity=".2" stroke="#22d3ee" strokeWidth="6">
+        <circle cx="90" cy="100" r="30" /><circle cx="226" cy="100" r="64" />
+      </g>
+      <g textAnchor="middle" fontSize="20" fontWeight="800" fill="#fff"><text x="90" y="105">A</text><text x="226" y="105">B</text></g>
+      <text x="160" y="192" textAnchor="middle" fontSize="13" fill="#cbd5e1">Los dos tienen la misma tensión superficial</text>
+    </svg>
+  )
+}
+
+function Surf() {
+  return (
+    <svg viewBox="0 0 320 200" role="img" aria-label="Dos alvéolos: A con surfactante (puntos cian) y B sin surfactante" className="block h-auto w-full">
+      {[[90, true, 'A'], [230, false, 'B']].map(([cx, on, l]) => (
+        <g key={l}>
+          <circle cx={cx} cy="95" r="52" fill="#0b1c28" stroke={on ? '#22d3ee' : '#fb7185'} strokeWidth={on ? 3 : 8} />
+          {on && Array.from({ length: 28 }, (_, i) => <circle key={i} cx={cx + Math.cos((i / 28) * 6.2832) * 44} cy={95 + Math.sin((i / 28) * 6.2832) * 44} r="3.4" fill="#22d3ee" />)}
+          <text x={cx} y="101" textAnchor="middle" fontSize="20" fontWeight="800" fill="#fff">{l}</text>
+          <text x={cx} y="175" textAnchor="middle" fontSize="13" fill="#cbd5e1">{on ? 'con capa de surfactante' : 'sin surfactante'}</text>
+        </g>
+      ))}
+    </svg>
+  )
+}
+
+function Visual({ v, epocIsA }) {
+  switch (v.t) {
+    case 'curves': return <Curves epocIsA={epocIsA} />
+    case 'mark': return <Curves mark />
+    case 'numbers': return <Numbers rows={v.rows} />
+    case 'alveolus': return <AlveolusZoom className="mx-auto max-w-[300px]" kind="epoc" damage={0.8} trapped={0.5} caliber={0.6} scale={1} title="Alvéolo de un paciente" />
+    case 'aero': return <AlveolusZoom className="mx-auto max-w-[300px]" kind="sano" damage={0} trapped={0} caliber={1} scale={1} aerosol={1} title="Partículas del aerosol llegando a un alvéolo" />
+    case 'airway': return <AirwayCross className="mx-auto max-w-[260px]" contraction={v.k} title="Corte de un bronquio" />
+    case 'airways2': return (
+      <ul className="grid grid-cols-2 gap-3">
+        <li><p className="text-center font-bold text-rose-300">Antes</p><AirwayCross contraction={0.7} title="Bronquio antes del salbutamol" /></li>
+        <li><p className="text-center font-bold text-sky-300">Después</p><AirwayCross contraction={0.5} drug title="Bronquio después del salbutamol" /></li>
+      </ul>
+    )
+    case 'twoalv': return <TwoAlveoli />
+    case 'surf': return <Surf />
+    case 'trap': return <Lungs className="mx-auto max-w-[240px]" kind="epoc" scale={1.1} fill={0.5} damage={0.7} trapped={0.6} caliber={0.65} zoom={false} title="Pulmones con aire atrapado" />
+    case 'lung': return <Lungs className="mx-auto max-w-[240px]" kind="epoc" scale={1} fill={0.6} damage={0.5} trapped={0.3} caliber={0.8} zoom={false} title="Pulmones con daño acumulado" />
+    default: return null
+  }
+}
+
+/* ───────── banco de preguntas (imagen, pregunta, opciones, por qué) ───────── */
+const BANK = [
+  { id: 'curvas', visual: { t: 'curves' }, q: 'Dos personas soplaron en el espirómetro. ¿Cuál curva es de la persona con EPOC?', opts: ['La curva A', 'La curva B'], answer: 'epocCurve', why: 'La persona con EPOC saca el aire lento: su curva sube despacio y tarda muchos segundos en estabilizarse. La persona sana saca casi todo el aire en el primer segundo.' },
+  { id: 'ratio-epoc', visual: { t: 'numbers', rows: [['FEV₁ (aire en el 1.er segundo)', `${fmt(E.pre.fev1, 2)} L`, '#fb7185'], ['FVC (aire total)', `${fmt(E.pre.fvc, 2)} L`, '#fff']] }, q: 'Con estos datos, ¿qué porción del aire sale en el primer segundo y qué sugiere?', opts: [`${fmt(E.pre.ratio, 0)} %: obstrucción (menos de 70 %)`, '72 %: normal', '95 %: la persona respira muy bien'], answer: 0, why: '0,95 ÷ 1,73 es cerca de 55 %. Si sale menos del 70 % del aire en el primer segundo, hay obstrucción: el aire sale con dificultad, típico de la EPOC.' },
+  { id: 'ratio-sano', visual: { t: 'numbers', rows: [['FEV₁ (aire en el 1.er segundo)', `${fmt(S.pre.fev1, 2)} L`, '#4ade80'], ['FVC (aire total)', `${fmt(S.pre.fvc, 2)} L`, '#fff']] }, q: 'Otra persona sopló y dio estos valores. ¿Cómo se interpreta?', opts: ['Normal: sale más del 70 % en el primer segundo', 'Obstrucción grave', 'No se puede saber'], answer: 0, why: '2,08 ÷ 2,88 es cerca de 72 %, por encima del 70 %. Su aire sale con rapidez: es un resultado normal.' },
+  { id: 'alveolo', visual: { t: 'alveolus' }, q: 'Mira este racimo de alvéolos de un paciente. ¿Qué le pasó?', opts: ['Sus paredes se rompieron y se fundieron (enfisema)', 'Se llenaron de agua', 'Se volvieron más pequeños y duros'], answer: 0, why: 'En el enfisema las paredes entre alvéolos se destruyen: quedan bolsas grandes y flojas que pierden elasticidad y atrapan aire.' },
+  { id: 'bronquio', visual: { t: 'airway', k: 0.75 }, q: 'Este es un bronquio visto de lado: el músculo (rojo) está apretado y casi no pasa aire. ¿Qué medicamento ayudaría?', opts: ['Un broncodilatador, como el salbutamol', 'Un antibiótico', 'Más surfactante'], answer: 0, why: 'El broncodilatador relaja el músculo que aprieta el bronquio y ensancha el tubo. El antibiótico sirve contra bacterias y el surfactante actúa en los alvéolos, no en los bronquios.' },
+  { id: 'despues', visual: { t: 'airways2' }, q: 'Tras usar salbutamol, ¿qué cambia en el bronquio?', opts: ['El músculo se relaja y el tubo se ensancha', 'Se reparan las paredes de los alvéolos', 'No cambia nada, nunca'], answer: 0, why: 'El salbutamol actúa sobre el músculo de las vías: lo relaja y pasa más aire. No repara las paredes rotas de los alvéolos.' },
+  { id: 'resultado', visual: { t: 'numbers', rows: [['FEV₁ antes del salbutamol', `${fmt(E.pre.fev1, 2)} L`, '#fb7185'], ['FEV₁ después', `${fmt(E.post.fev1, 2)} L`, '#60a5fa']] }, q: 'En este paciente con EPOC el FEV₁ subió solo 0,07 L. ¿Qué significa?', opts: ['Mejora pequeña: gran parte del daño es permanente', 'El medicamento curó la EPOC', 'El paciente empeoró'], answer: 0, why: 'Sube un poco porque el bronquio se abre, pero las paredes rotas de los alvéolos no se reparan. El salbutamol alivia, no cura.' },
+  { id: 'sano-salb', visual: { t: 'numbers', rows: [['FEV₁ sano, antes', `${fmt(S.pre.fev1, 2)} L`, '#4ade80'], ['FEV₁ sano, después', `${fmt(S.post.fev1, 2)} L`, '#60a5fa']] }, q: 'Una persona sana usa salbutamol. ¿Qué esperas?', opts: ['Casi ningún cambio: sus bronquios ya estaban abiertos', 'Una mejora enorme', 'Que sus pulmones se dañen'], answer: 0, why: 'Si los bronquios ya están despejados no hay nada que ensanchar, por eso casi no cambia (2,08 a 2,10 L).' },
+  { id: 'laplace', visual: { t: 'twoalv' }, q: 'Con la misma tensión superficial, ¿cuál alvéolo necesita más presión para no cerrarse?', opts: ['El pequeño (A)', 'El grande (B)', 'Los dos igual'], answer: 0, why: 'La ley de Laplace dice P = 2T/r: si el radio (r) es menor, la presión necesaria es mayor. Por eso los alvéolos pequeños son los que más tienden a cerrarse.' },
+  { id: 'surfactante', visual: { t: 'surf' }, q: '¿Qué hace la capa de surfactante del alvéolo A?', opts: ['Baja la tensión superficial y evita que se cierre', 'Sube la tensión superficial', 'Filtra las bacterias del aire'], answer: 0, why: 'El surfactante funciona como un jabón natural: reduce la fuerza que pega las paredes húmedas. El aerosol del vapeador puede dañarlo.' },
+  { id: 'atrapado', visual: { t: 'trap' }, q: 'Estos pulmones quedan muy inflados aun después de soplar. ¿Por qué hay aire atrapado en la EPOC?', opts: ['Las paredes flojas no empujan el aire afuera y las vías se estrechan', 'El cuerpo produce demasiado oxígeno', 'El diafragma se paraliza'], answer: 0, why: 'Sin elasticidad, el pulmón no se “encoge” para sacar el aire, y las vías pequeñas se cierran al soplar. El aire entra, pero no sale del todo.' },
+  { id: 'punto', visual: { t: 'mark' }, q: 'En la curva, el punto marcado a 1 segundo mide…', opts: ['FEV₁: el aire que salió en el primer segundo', 'FVC: todo el aire que cabe en el pulmón', 'El aire que quedó dentro'], answer: 0, why: 'FEV₁ significa volumen espiratorio forzado en el 1.er segundo. FVC es el total que sale, la meseta de la curva.' },
+  { id: 'aerosol', visual: { t: 'aero' }, q: '¿Qué afirmación sobre el aerosol del vapeador es correcta?', opts: ['Trae más que vapor: nicotina, saborizantes y a veces nitrosaminas y metales', 'Es solo vapor de agua', 'No llega hasta los alvéolos'], answer: 0, why: 'El aerosol arrastra partículas muy pequeñas que llegan al fondo del pulmón. Incluyen nicotina, saborizantes y, en algunos casos, NNN, NNK y metales como níquel o plomo.' },
+  { id: 'lento', visual: { t: 'lung' }, q: '¿Por qué el daño por vapeo puede notarse años después?', opts: ['La EPOC avanza despacio y el daño se acumula', 'Porque el aerosol tarda años en llegar al pulmón', 'Porque solo aparece en adultos mayores por edad'], answer: 0, why: 'Cada exposición suma un poco de inflamación y destrucción de paredes. Los pulmones tienen reserva, así que los síntomas aparecen tarde, cuando gran parte del daño ya es permanente.' },
+]
+
+const shuffle = (a) => { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]] } return r }
+
+function makeRound(q) {
+  const epocIsA = Math.random() < 0.5
+  const base = q.opts.map((text, i) => ({ text, i }))
+  const correctIdx = q.answer === 'epocCurve' ? (epocIsA ? 0 : 1) : q.answer
+  const opts = q.answer === 'epocCurve' ? base : shuffle(base)
+  return { q, epocIsA, opts, correct: opts.findIndex((o) => o.i === correctIdx) }
+}
+const newGame = () => shuffle(BANK).slice(0, ROUNDS).map(makeRound)
+
+const bestKey = 'alveolos_quiz_best'
+const getBest = () => { try { return +localStorage.getItem(bestKey) || 0 } catch { return 0 } }
+const setBest = (v) => { try { localStorage.setItem(bestKey, String(v)) } catch { /* sin almacenamiento */ } }
+
+/* ───────── juego ───────── */
+function Play({ onExit }) {
+  const [rounds, setRounds] = useState(newGame)
+  const [i, setI] = useState(0)
+  const [picked, setPicked] = useState(null)
+  const [score, setScore] = useState(0)
+  const [streak, setStreak] = useState(0)
+  const [log, setLog] = useState([])
+  const [best, setBestS] = useState(getBest)
+  const done = i >= ROUNDS
+  const R = rounds[i]
+  const ok = picked !== null && picked === R?.correct
+
+  const answer = (n) => {
+    if (picked !== null) return
+    setPicked(n)
+    const good = n === R.correct
+    setLog((l) => [...l, good])
+    if (good) { setScore((s) => s + 100 + Math.min(streak, 4) * 25); setStreak((s) => s + 1) } else setStreak(0)
+  }
+  const next = () => { setPicked(null); setI((x) => x + 1) }
+  const again = () => { setRounds(newGame()); setI(0); setPicked(null); setScore(0); setStreak(0); setLog([]) }
+
+  useEffect(() => {
+    if (done && score > getBest()) { setBest(score); setBestS(score) }
+  }, [done, score])
+
+  useEffect(() => {
+    const on = (e) => {
+      if (done) return
+      if (picked === null && ['1', '2', '3'].includes(e.key) && R.opts[+e.key - 1]) answer(+e.key - 1)
+      else if (picked !== null && (e.key === 'Enter' || e.key === ' ') && document.activeElement?.tagName !== 'BUTTON') { e.preventDefault(); next() }
+    }
+    addEventListener('keydown', on)
+    return () => removeEventListener('keydown', on)
+  })
+
+  const correctN = log.filter(Boolean).length
+  const progress = (
+    <header className="flex items-center gap-4">
+      <ol className="flex flex-1 gap-1.5" aria-label={`Pregunta ${Math.min(i + 1, ROUNDS)} de ${ROUNDS}`}>
+        {Array.from({ length: ROUNDS }, (_, n) => (
+          <li key={n} className="h-2 flex-1 rounded-full transition-colors duration-300" style={{ background: n < log.length ? (log[n] ? '#34d399' : '#fb7185') : n === i ? '#e2e8f0' : '#1f3342' }} />
+        ))}
+      </ol>
+      <p className="num whitespace-nowrap text-sm text-slate-300">{Math.min(i + 1, ROUNDS)} de {ROUNDS}</p>
+      <p className="font-display text-2xl font-extrabold tabular-nums text-white">{score}<span className="ml-1 font-sans text-xs font-normal tracking-normal text-slate-400">puntos</span></p>
+      {streak > 1 && <p className="text-sm font-bold text-yellow-300">Racha de {streak}</p>}
+    </header>
+  )
+
+  if (done) {
+    const stars = correctN >= 7 ? 3 : correctN >= 5 ? 2 : correctN >= 3 ? 1 : 0
+    const rank = ['Sigue repasando', 'Estudiante en práctica', 'Residente', 'Especialista en neumología'][stars]
+    const wrong = rounds.filter((_, n) => !log[n])
+    return (
+      <>
+        {progress}
+        <section className="mt-8 grid gap-10 lg:grid-cols-[.8fr_1.2fr] lg:gap-16" aria-label="Resultado">
+          <article>
+            <h3 className="font-sans text-xs font-bold uppercase tracking-[0.16em] text-emerald-400">Terminaste</h3>
+            <p className="mt-2 font-display text-8xl font-extrabold leading-none tabular-nums text-white">{score}</p>
+            <p className="mt-2 text-lg text-slate-300">{correctN} de {ROUNDS} respuestas correctas</p>
+            <p className="mt-3 flex items-center gap-1" aria-label={`${stars} de 3 estrellas`}>
+              {[1, 2, 3].map((n) => <Star key={n} size={28} aria-hidden className={n <= stars ? 'fill-yellow-400 text-yellow-400' : 'text-slate-700'} />)}
+              <strong className="ml-3 text-xl text-yellow-300">{rank}</strong>
+            </p>
+            <p className="mt-2 text-slate-400">Tu mejor marca: <strong className="num text-white">{Math.max(best, score)}</strong></p>
+            <p className="mt-6 flex flex-wrap gap-3">
+              <button onClick={again} className="press inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-emerald-400 px-6 text-sm font-bold text-[#07131c] hover:bg-white"><RotateCcw size={16} aria-hidden />Jugar otra vez</button>
+              <button onClick={onExit} className="press hov min-h-11 cursor-pointer px-3 text-sm font-semibold text-slate-200">Volver al inicio</button>
+            </p>
+          </article>
+          <article>
+            {wrong.length === 0 ? (
+              <p className="font-display text-3xl font-extrabold text-emerald-300">Sin errores. Dominas el tema.</p>
+            ) : (
+              <>
+                <h3 className="font-sans text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Para repasar</h3>
+                <ul className="mt-3 space-y-5">
+                  {wrong.map((r) => (
+                    <li key={r.q.id} className="border-l-[3px] border-rose-400 pl-4">
+                      <strong className="block text-lg">{r.q.q}</strong>
+                      <span className="mt-1 block font-semibold text-emerald-300">Respuesta: {r.opts[r.correct].text}</span>
+                      <span className="mt-1 block text-slate-300">{r.q.why}</span>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </article>
+        </section>
+      </>
+    )
+  }
+
+  return (
+    <>
+      {progress}
+      <section className="mt-8 grid items-start gap-8 lg:grid-cols-[1fr_1.1fr] lg:gap-14" aria-label="Pregunta">
+        <figure key={'v' + i} className="pop-in"><Visual v={R.q.visual} epocIsA={R.epocIsA} /></figure>
+        <article>
+          <h3 key={'q' + i} className="pop-in font-display text-3xl font-extrabold leading-tight tracking-tight text-white sm:text-4xl">{R.q.q}</h3>
+          <ul className="mt-5 space-y-3" aria-label="Opciones de respuesta">
+            {R.opts.map((o, n) => {
+              const isC = picked !== null && n === R.correct
+              const isW = picked === n && n !== R.correct
+              return (
+                <li key={n}>
+                  <button onClick={() => answer(n)} disabled={picked !== null}
+                    className={`flex min-h-14 w-full items-center gap-4 rounded-xl border-2 px-4 py-3 text-left text-lg transition-colors duration-200 ${
+                      isC ? 'border-emerald-400 bg-emerald-400/15 text-white' : isW ? 'shake border-rose-400 bg-rose-400/15 text-white' : picked !== null ? 'border-white/10 text-slate-500' : 'cursor-pointer border-white/20 text-slate-100 hover:border-emerald-300 hover:text-emerald-200'
+                    }`}>
+                    <kbd className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-md border font-sans text-sm font-bold ${isC ? 'border-emerald-300 bg-emerald-300 text-[#07131c]' : isW ? 'border-rose-300 bg-rose-300 text-[#07131c]' : 'border-white/30'}`}>{LETTERS[n]}</kbd>
+                    {o.text}
+                  </button>
+                </li>
+              )
+            })}
+          </ul>
+          {picked !== null ? (
+            <aside className="pop-in mt-5" aria-live="polite">
+              <h4 className="text-2xl font-extrabold" style={{ color: ok ? '#34d399' : '#fb7185' }}>{ok ? '¡Correcto!' : 'Casi. La respuesta era la ' + LETTERS[R.correct]}</h4>
+              <p className="mt-1 text-lg text-slate-200">{R.q.why}</p>
+              <button onClick={next} className="press mt-4 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-[#07131c] hover:bg-emerald-300">
+                {i + 1 >= ROUNDS ? 'Ver mi resultado' : 'Siguiente pregunta'}<Tri />
+              </button>
+            </aside>
+          ) : (
+            <p className="mt-4 text-sm text-slate-400">Toca una respuesta, o pulsa 1, 2 o 3 en el teclado.</p>
+          )}
+        </article>
+      </section>
+    </>
+  )
+}
+
+export default function Game() {
+  const [on, setOn] = useState(false)
+  const best = useMemo(getBest, [on])
+  return (
+    <Band id="desafio" theme="game">
+      <Head dark n="03" label="Minijuego" title={on ? 'Pon a prueba lo *aprendido*' : 'Ahora *juega*: ¿qué le pasa a este paciente?'}
+        lead={on ? undefined : 'Es un juego de preguntas con casos clínicos. Cada pregunta trae una imagen (una curva, un alvéolo, un bronquio) y tres respuestas. Si fallas, el juego te explica por qué.'} />
+      {on ? (
+        <section className="mt-8" aria-label="Juego en curso"><Play onExit={() => setOn(false)} /></section>
+      ) : (
+        <section className="mt-8 grid items-center gap-10 lg:grid-cols-[1.1fr_.9fr] lg:gap-16" aria-label="Instrucciones">
+          <HowTo dark title="Cómo se juega" items={[
+            ['8 casos', 'Te toca una mezcla al azar: leer curvas, interpretar números, mirar alvéolos y bronquios.'],
+            ['Puntos', 'Cada acierto da 100 puntos. Si aciertas varias seguidas ganas una racha con bonus.'],
+            ['Explicación', 'Después de cada respuesta ves por qué era la correcta, con el mismo lenguaje de la página.'],
+            ['Resultado', 'Al final recibes un rango y la lista de lo que conviene repasar.'],
+          ]} />
+          <article className="text-center lg:text-left">
+            <button onClick={() => setOn(true)} className="press inline-flex min-h-16 cursor-pointer items-center gap-3 rounded-full bg-emerald-400 px-10 text-xl font-extrabold text-[#07131c] hover:bg-white">
+              Empezar a jugar<Tri />
+            </button>
+            <p className="mt-4 text-slate-300">8 preguntas, unos 3 minutos.</p>
+            {best > 0 && <p className="mt-1 text-lg font-bold text-yellow-300">Tu mejor marca: {best} puntos</p>}
+          </article>
+        </section>
+      )}
+    </Band>
+  )
+}
