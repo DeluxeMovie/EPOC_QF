@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { RotateCcw, Star } from 'lucide-react'
 import { Band, Head, HowTo, Tri } from '../components/ui'
 import AlveolusZoom from '../components/AlveolusZoom'
@@ -141,10 +141,6 @@ function makeRound(q) {
 }
 const newGame = () => shuffle(BANK).slice(0, ROUNDS).map(makeRound)
 
-const bestKey = 'alveolos_quiz_best'
-const getBest = () => { try { return +localStorage.getItem(bestKey) || 0 } catch { return 0 } }
-const setBest = (v) => { try { localStorage.setItem(bestKey, String(v)) } catch { /* sin almacenamiento */ } }
-
 /* ───────── juego ───────── */
 function Play({ onExit }) {
   const [rounds, setRounds] = useState(newGame)
@@ -157,7 +153,6 @@ function Play({ onExit }) {
   const t0 = useRef(performance.now())
   const gameId = useRef(Math.random().toString(36).slice(2, 10))
   const sent = useRef(false)
-  const [best, setBestS] = useState(getBest)
   const done = i >= ROUNDS
   const R = rounds[i]
   const ok = picked !== null && picked === R?.correct
@@ -178,10 +173,6 @@ function Play({ onExit }) {
     sent.current = true
     sendResult({ game: gameId.current, score, correct: log.filter(Boolean).length, total: ROUNDS, ms: times.reduce((a, b) => a + b, 0), answers: rounds.map((r, n) => ({ id: r.q.id, ok: !!log[n], ms: times[n] ?? 0 })) })
   }, [done, score, log, times, rounds])
-
-  useEffect(() => {
-    if (done && score > getBest()) { setBest(score); setBestS(score) }
-  }, [done, score])
 
   useEffect(() => {
     const on = (e) => {
@@ -223,7 +214,6 @@ function Play({ onExit }) {
               {[1, 2, 3].map((n) => <Star key={n} size={28} aria-hidden className={n <= stars ? 'fill-yellow-400 text-yellow-400' : 'text-slate-700'} />)}
               <strong className="ml-3 text-xl text-yellow-300">{rank}</strong>
             </p>
-            <p className="mt-2 text-slate-400">Tu mejor marca: <strong className="num text-white">{Math.max(best, score)}</strong></p>
             <p className="mt-6 flex flex-wrap gap-3">
               <button onClick={again} className="press inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full bg-emerald-400 px-6 text-sm font-bold text-[#07131c] hover:bg-white"><RotateCcw size={16} aria-hidden />Jugar otra vez</button>
               <button onClick={onExit} className="press hov min-h-11 cursor-pointer px-3 text-sm font-semibold text-slate-200">Volver al inicio</button>
@@ -295,7 +285,6 @@ function Play({ onExit }) {
 
 export default function Game() {
   const [on, setOn] = useState(false)
-  const best = useMemo(getBest, [on])
   return (
     <Band id="desafio" theme="game">
       <Head dark n="03" label="Minijuego" title={on ? 'Pon a prueba lo *aprendido*' : 'Ahora *juega*: ¿qué le pasa a este paciente?'}
@@ -316,7 +305,6 @@ export default function Game() {
             </button>
             <p className="mt-4 text-slate-300">8 preguntas, unos 3 minutos.</p>
             <p className="mt-2 max-w-sm text-sm text-slate-400 lg:max-w-none">Al terminar se guardan tu puntaje y qué preguntas acertaste, sin nombre ni correo, para un estudio del curso.</p>
-            {best > 0 && <p className="mt-1 text-lg font-bold text-yellow-300">Tu mejor marca: {best} puntos</p>}
           </article>
         </section>
       )}

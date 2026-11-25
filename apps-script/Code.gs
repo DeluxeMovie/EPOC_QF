@@ -27,12 +27,18 @@ function doPost(e) {
 // Clave para ver los resultados en la página (#resultados). Cámbiala por una tuya.
 var CLAVE = 'EPOC_2026';
 
+// Lee por posición de columna, así funciona aunque la hoja no tenga fila de encabezados.
+var COLS = {
+  partidas: ['fecha', 'partida', 'jugador', 'puntaje', 'aciertos', 'preguntas', 'segundos'],
+  respuestas: ['fecha', 'partida', 'jugador', 'pregunta', 'acierto', 'segundos']
+};
+
 function rows_(name) {
   var sh = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(name);
-  if (!sh) return [];
+  if (!sh || sh.getLastRow() === 0) return [];
   var v = sh.getDataRange().getValues();
-  var h = v.shift();
-  return v.map(function (r) { var o = {}; h.forEach(function (k, i) { o[k] = r[i]; }); return o; });
+  if (String(v[0][0]).toLowerCase() === 'fecha') v.shift();
+  return v.map(function (r) { var o = {}; COLS[name].forEach(function (k, i) { o[k] = r[i]; }); return o; });
 }
 
 // Sin parámetros responde "activo". Con ?clave=... devuelve los datos en JSON para la página de resultados.
