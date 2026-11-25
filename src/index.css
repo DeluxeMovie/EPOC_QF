@@ -138,4 +138,4 @@ svg text { font-family: inherit; }
 @media (min-width: 640px) { .band { --gx: max(2rem, calc((100% - 72rem) / 2 + 2rem)); padding-block: 4rem; } }
 
 /* animaciones infinitas solo mientras la sección se ve */
-section:not([data-live]), section:not([data-live]) * { animation-play-state: paused !important; }
+section[data-theme]:not([data-live]), section[data-theme]:not([data-live]) * { animation-play-state: paused !important; }

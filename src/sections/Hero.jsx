@@ -18,7 +18,7 @@ export default function Hero() {
           <Split text="Alvéolos" by="letter" step={38} delay={150} className="block" />
           <Split text="*bajo* *presión*" by="letter" step={38} delay={450} className="block whitespace-nowrap" />
         </h1>
-        <Rv as="p" d={1000} className="mt-7 max-w-lg text-xl text-ink/75">Una guía interactiva para entender qué le pasa al pulmón cuando se vapea y cómo ayuda un medicamento. No necesitas saber de medicina para seguirla.</Rv>
+        <Rv as="p" d={1000} className="mt-7 max-w-lg text-xl text-ink/75">Un modelo interactivo para explicar los fenómenos físicos del alvéolo en condiciones normales y patológicas, y relacionarlos con el tratamiento farmacológico.</Rv>
         <Rv as="nav" d={1200} aria-label="Acciones principales" className="mt-8 flex flex-wrap items-center gap-3">
           <a href="#simulador" className="press inline-flex min-h-11 items-center rounded-full bg-ink px-6 text-sm font-semibold text-white hover:bg-[var(--accent)]">Abrir el simulador</a>
           <a href="#desafio" style={{ '--accent': '#be123c' }} className="hov inline-flex min-h-11 items-center gap-2 px-3 text-sm font-semibold">Jugar el minijuego <Tri /></a>

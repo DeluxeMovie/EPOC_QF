@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { RotateCcw, Star } from 'lucide-react'
 import { Band, Head, HowTo, Tri } from '../components/ui'
 import AlveolusZoom from '../components/AlveolusZoom'
@@ -6,6 +6,7 @@ import AirwayCross from '../components/AirwayCross'
 import Lungs from '../components/Lungs'
 import { curveFor, SPIRO } from '../data/spirometry'
 import { fmt } from '../lib/physics'
+import { sendResult } from '../lib/sendResult'
 
 const ROUNDS = 8
 const LETTERS = ['A', 'B', 'C']
@@ -105,28 +106,28 @@ function Visual({ v, epocIsA }) {
     )
     case 'twoalv': return <TwoAlveoli />
     case 'surf': return <Surf />
-    case 'trap': return <Lungs className="mx-auto max-w-[240px]" kind="epoc" scale={1.1} fill={0.5} damage={0.7} trapped={0.6} caliber={0.65} zoom={false} title="Pulmones con aire atrapado" />
+    case 'trap': return <Lungs className="mx-auto max-w-[240px]" kind="epoc" scale={1.1} fill={0.5} damage={0.7} trapped={0.6} caliber={0.65} zoom={false} title="Pulmones con enfisema" />
     case 'lung': return <Lungs className="mx-auto max-w-[240px]" kind="epoc" scale={1} fill={0.6} damage={0.5} trapped={0.3} caliber={0.8} zoom={false} title="Pulmones con daño acumulado" />
     default: return null
   }
 }
 
 /* ───────── banco de preguntas (imagen, pregunta, opciones, por qué) ───────── */
-const BANK = [
-  { id: 'curvas', visual: { t: 'curves' }, q: 'Dos personas soplaron en el espirómetro. ¿Cuál curva es de la persona con EPOC?', opts: ['La curva A', 'La curva B'], answer: 'epocCurve', why: 'La persona con EPOC saca el aire lento: su curva sube despacio y tarda muchos segundos en estabilizarse. La persona sana saca casi todo el aire en el primer segundo.' },
-  { id: 'ratio-epoc', visual: { t: 'numbers', rows: [['FEV₁ (aire en el 1.er segundo)', `${fmt(E.pre.fev1, 2)} L`, '#fb7185'], ['FVC (aire total)', `${fmt(E.pre.fvc, 2)} L`, '#fff']] }, q: 'Con estos datos, ¿qué porción del aire sale en el primer segundo y qué sugiere?', opts: [`${fmt(E.pre.ratio, 0)} %: obstrucción (menos de 70 %)`, '72 %: normal', '95 %: la persona respira muy bien'], answer: 0, why: '0,95 ÷ 1,73 es cerca de 55 %. Si sale menos del 70 % del aire en el primer segundo, hay obstrucción: el aire sale con dificultad, típico de la EPOC.' },
-  { id: 'ratio-sano', visual: { t: 'numbers', rows: [['FEV₁ (aire en el 1.er segundo)', `${fmt(S.pre.fev1, 2)} L`, '#4ade80'], ['FVC (aire total)', `${fmt(S.pre.fvc, 2)} L`, '#fff']] }, q: 'Otra persona sopló y dio estos valores. ¿Cómo se interpreta?', opts: ['Normal: sale más del 70 % en el primer segundo', 'Obstrucción grave', 'No se puede saber'], answer: 0, why: '2,08 ÷ 2,88 es cerca de 72 %, por encima del 70 %. Su aire sale con rapidez: es un resultado normal.' },
-  { id: 'alveolo', visual: { t: 'alveolus' }, q: 'Mira este racimo de alvéolos de un paciente. ¿Qué le pasó?', opts: ['Sus paredes se rompieron y se fundieron (enfisema)', 'Se llenaron de agua', 'Se volvieron más pequeños y duros'], answer: 0, why: 'En el enfisema las paredes entre alvéolos se destruyen: quedan bolsas grandes y flojas que pierden elasticidad y atrapan aire.' },
-  { id: 'bronquio', visual: { t: 'airway', k: 0.75 }, q: 'Este es un bronquio visto de lado: el músculo (rojo) está apretado y casi no pasa aire. ¿Qué medicamento ayudaría?', opts: ['Un broncodilatador, como el salbutamol', 'Un antibiótico', 'Más surfactante'], answer: 0, why: 'El broncodilatador relaja el músculo que aprieta el bronquio y ensancha el tubo. El antibiótico sirve contra bacterias y el surfactante actúa en los alvéolos, no en los bronquios.' },
-  { id: 'despues', visual: { t: 'airways2' }, q: 'Tras usar salbutamol, ¿qué cambia en el bronquio?', opts: ['El músculo se relaja y el tubo se ensancha', 'Se reparan las paredes de los alvéolos', 'No cambia nada, nunca'], answer: 0, why: 'El salbutamol actúa sobre el músculo de las vías: lo relaja y pasa más aire. No repara las paredes rotas de los alvéolos.' },
-  { id: 'resultado', visual: { t: 'numbers', rows: [['FEV₁ antes del salbutamol', `${fmt(E.pre.fev1, 2)} L`, '#fb7185'], ['FEV₁ después', `${fmt(E.post.fev1, 2)} L`, '#60a5fa']] }, q: 'En este paciente con EPOC el FEV₁ subió solo 0,07 L. ¿Qué significa?', opts: ['Mejora pequeña: gran parte del daño es permanente', 'El medicamento curó la EPOC', 'El paciente empeoró'], answer: 0, why: 'Sube un poco porque el bronquio se abre, pero las paredes rotas de los alvéolos no se reparan. El salbutamol alivia, no cura.' },
-  { id: 'sano-salb', visual: { t: 'numbers', rows: [['FEV₁ sano, antes', `${fmt(S.pre.fev1, 2)} L`, '#4ade80'], ['FEV₁ sano, después', `${fmt(S.post.fev1, 2)} L`, '#60a5fa']] }, q: 'Una persona sana usa salbutamol. ¿Qué esperas?', opts: ['Casi ningún cambio: sus bronquios ya estaban abiertos', 'Una mejora enorme', 'Que sus pulmones se dañen'], answer: 0, why: 'Si los bronquios ya están despejados no hay nada que ensanchar, por eso casi no cambia (2,08 a 2,10 L).' },
-  { id: 'laplace', visual: { t: 'twoalv' }, q: 'Con la misma tensión superficial, ¿cuál alvéolo necesita más presión para no cerrarse?', opts: ['El pequeño (A)', 'El grande (B)', 'Los dos igual'], answer: 0, why: 'La ley de Laplace dice P = 2T/r: si el radio (r) es menor, la presión necesaria es mayor. Por eso los alvéolos pequeños son los que más tienden a cerrarse.' },
-  { id: 'surfactante', visual: { t: 'surf' }, q: '¿Qué hace la capa de surfactante del alvéolo A?', opts: ['Baja la tensión superficial y evita que se cierre', 'Sube la tensión superficial', 'Filtra las bacterias del aire'], answer: 0, why: 'El surfactante funciona como un jabón natural: reduce la fuerza que pega las paredes húmedas. El aerosol del vapeador puede dañarlo.' },
-  { id: 'atrapado', visual: { t: 'trap' }, q: 'Estos pulmones quedan muy inflados aun después de soplar. ¿Por qué hay aire atrapado en la EPOC?', opts: ['Las paredes flojas no empujan el aire afuera y las vías se estrechan', 'El cuerpo produce demasiado oxígeno', 'El diafragma se paraliza'], answer: 0, why: 'Sin elasticidad, el pulmón no se “encoge” para sacar el aire, y las vías pequeñas se cierran al soplar. El aire entra, pero no sale del todo.' },
-  { id: 'punto', visual: { t: 'mark' }, q: 'En la curva, el punto marcado a 1 segundo mide…', opts: ['FEV₁: el aire que salió en el primer segundo', 'FVC: todo el aire que cabe en el pulmón', 'El aire que quedó dentro'], answer: 0, why: 'FEV₁ significa volumen espiratorio forzado en el 1.er segundo. FVC es el total que sale, la meseta de la curva.' },
-  { id: 'aerosol', visual: { t: 'aero' }, q: '¿Qué afirmación sobre el aerosol del vapeador es correcta?', opts: ['Trae más que vapor: nicotina, saborizantes y a veces nitrosaminas y metales', 'Es solo vapor de agua', 'No llega hasta los alvéolos'], answer: 0, why: 'El aerosol arrastra partículas muy pequeñas que llegan al fondo del pulmón. Incluyen nicotina, saborizantes y, en algunos casos, NNN, NNK y metales como níquel o plomo.' },
-  { id: 'lento', visual: { t: 'lung' }, q: '¿Por qué el daño por vapeo puede notarse años después?', opts: ['La EPOC avanza despacio y el daño se acumula', 'Porque el aerosol tarda años en llegar al pulmón', 'Porque solo aparece en adultos mayores por edad'], answer: 0, why: 'Cada exposición suma un poco de inflamación y destrucción de paredes. Los pulmones tienen reserva, así que los síntomas aparecen tarde, cuando gran parte del daño ya es permanente.' },
+export const BANK = [
+  { id: 'curvas', visual: { t: 'curves' }, q: 'Dos personas soplaron en el espirómetro. ¿Cuál curva es de la persona con EPOC?', opts: ['La curva A', 'La curva B'], answer: 'epocCurve', why: 'La curva de la persona sana sube casi de inmediato y luego se aplana. La de la persona con EPOC sube más despacio: el aire sale con más dificultad.' },
+  { id: 'ratio-epoc', visual: { t: 'numbers', rows: [['FEV₁ (aire en el primer segundo)', `${fmt(E.pre.fev1, 2)} L`, '#fb7185'], ['FVC (aire total)', `${fmt(E.pre.fvc, 2)} L`, '#fff']] }, q: 'Con estos datos, ¿qué fracción del aire sale en el primer segundo y qué sugiere?', opts: [`Cerca de ${fmt(E.pre.ratio, 0)} %: patrón obstructivo`, 'Cerca de 72 %: igual que el voluntario sano', 'Cerca de 95 %: sale casi todo en el primer segundo'], answer: 0, why: '0,95 ÷ 1,73 es cerca de 55 %. El voluntario sano saca 72,2 %, así que este paciente muestra un patrón obstructivo.' },
+  { id: 'ratio-sano', visual: { t: 'numbers', rows: [['FEV₁ (aire en el primer segundo)', `${fmt(S.pre.fev1, 2)} L`, '#4ade80'], ['FVC (aire total)', `${fmt(S.pre.fvc, 2)} L`, '#fff']] }, q: 'Otra persona sopló y dio estos valores. ¿Cómo se interpreta?', opts: ['Sale cerca del 72 % del aire en el primer segundo: pulmón sano', 'Patrón obstructivo (EPOC)', 'No se puede saber'], answer: 0, why: '2,08 ÷ 2,88 es cerca de 72 %: es el valor del voluntario con pulmones sanos.' },
+  { id: 'alveolo', visual: { t: 'alveolus' }, q: 'Mira este racimo de alvéolos de un paciente. ¿Qué le pasó?', opts: ['Las paredes entre los sacos de aire están dañadas (enfisema)', 'Se llenaron de agua', 'Se volvieron más pequeños y duros'], answer: 0, why: 'En el enfisema las paredes entre los sacos de aire de los pulmones están dañadas y cuesta más sacar el aire.' },
+  { id: 'bronquio', visual: { t: 'airway', k: 0.75 }, q: 'Este es un bronquio visto de lado: el músculo (rojo) está apretado. ¿Qué medicamento ayudaría?', opts: ['Un broncodilatador, como el salbutamol', 'Un antibiótico', 'Más surfactante'], answer: 0, why: 'Los broncodilatadores relajan el músculo liso que envuelve los bronquios y bronquiolos, y así aumentan el diámetro de las vías aéreas.' },
+  { id: 'despues', visual: { t: 'airways2' }, q: 'Tras usar salbutamol, ¿qué cambia en el bronquio?', opts: ['El músculo se relaja y el diámetro aumenta', 'Aumenta la resistencia al paso del aire', 'Se destruyen las paredes de los alvéolos'], answer: 0, why: 'El salbutamol abre los bronquios: relaja el músculo liso, aumenta el diámetro de la vía y disminuye la resistencia al flujo del aire.' },
+  { id: 'resultado', visual: { t: 'numbers', rows: [['FEV₁ antes del salbutamol', `${fmt(E.pre.fev1, 2)} L`, '#fb7185'], ['FEV₁ después', `${fmt(E.post.fev1, 2)} L`, '#60a5fa']] }, q: 'En este paciente con EPOC el FEV₁ subió solo 0,07 L. ¿Qué significa?', opts: ['Mejora pequeña: sigue muy por debajo del voluntario sano', 'El FEV₁ empeoró', 'Quedó igual que en una persona sana'], answer: 0, why: 'El FEV₁ pasó de 0,95 a 1,02 L y el FEV₁/FVC de 54,8 a 58,0 %, todavía lejos del 72 % del voluntario sano.' },
+  { id: 'sano-salb', visual: { t: 'numbers', rows: [['FEV₁ sano, antes', `${fmt(S.pre.fev1, 2)} L`, '#4ade80'], ['FEV₁ sano, después', `${fmt(S.post.fev1, 2)} L`, '#60a5fa']] }, q: 'Una persona sana usó salbutamol. ¿Qué mostró su espirometría?', opts: ['Casi ningún cambio en el FEV₁', 'Una mejora enorme', 'Que el FEV₁ bajó mucho'], answer: 0, why: 'En el voluntario sano el FEV₁ pasó de 2,08 a 2,10 L: casi no cambió.' },
+  { id: 'laplace', visual: { t: 'twoalv' }, q: 'Con la misma tensión superficial, ¿cuál alvéolo necesita más presión?', opts: ['El pequeño (A)', 'El grande (B)', 'Los dos igual'], answer: 0, why: 'Según la ley de Laplace, P = 2T/r: si el radio (r) es pequeño, el denominador es pequeño y la presión aumenta.' },
+  { id: 'surfactante', visual: { t: 'surf' }, q: '¿Qué hace la capa de surfactante del alvéolo A?', opts: ['Reduce la tensión superficial y evita el colapso', 'Sube la tensión superficial', 'Hace más grueso el aire'], answer: 0, why: 'El surfactante reduce la tensión superficial en la interfase aire-líquido del alvéolo para evitar su colapso al espirar. La exposición al vapeo lo altera.' },
+  { id: 'enfisema', visual: { t: 'trap' }, q: 'Estos pulmones tienen enfisema. ¿Qué le ocurre al aire?', opts: ['Cuesta más sacarlo porque las paredes entre los sacos de aire están dañadas', 'Sale más rápido que en un pulmón sano', 'No logra entrar a los pulmones'], answer: 0, why: 'En el enfisema las paredes de los alvéolos están dañadas y no permiten distenderse: aparece un patrón obstructivo y el aire sale con dificultad.' },
+  { id: 'punto', visual: { t: 'mark' }, q: 'En la curva, el punto marcado a 1 segundo mide…', opts: ['FEV₁: el aire exhalado en el primer segundo', 'FVC: el aire exhalado tras una inhalación total', 'El aire que quedó dentro'], answer: 0, why: 'FEV₁ es el volumen espiratorio forzado en el primer segundo. FVC es la capacidad vital forzada, el total exhalado con fuerza.' },
+  { id: 'aerosol', visual: { t: 'aero' }, q: '¿Qué afirmación sobre el aerosol del vapeador es correcta?', opts: ['Trae nicotina (en algunos casos), saborizantes, otros químicos, sustancias cancerígenas y metales pesados', 'Es solo vapor de agua', 'No contiene sustancias dañinas'], answer: 0, why: 'El aerosol puede contener nicotina, saborizantes y otros químicos. Se han encontrado sustancias cancerígenas como NNN y NNK, y también metales pesados.' },
+  { id: 'comparacion', visual: { t: 'numbers', rows: [['FEV₁/FVC del voluntario sano', `${fmt(S.pre.ratio)} %`, '#4ade80'], ['FEV₁/FVC del voluntario que vapea', `${fmt(E.pre.ratio)} %`, '#fb7185']] }, q: '¿Qué indica esta comparación entre el voluntario sano y el que lleva 5 años vapeando?', opts: ['El que vapea solo logra sacar cerca del 55 % del aire en el primer segundo: patrón obstructivo', 'Los dos sacan el aire al mismo ritmo', 'El que vapea saca el aire más rápido'], answer: 0, why: 'El voluntario sano saca 72,2 % del aire en el primer segundo. El que vapea solo saca cerca de 55 %, coherente con un patrón obstructivo.' },
 ]
 
 const shuffle = (a) => { const r = a.slice(); for (let i = r.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [r[i], r[j]] = [r[j], r[i]] } return r }
@@ -152,6 +153,10 @@ function Play({ onExit }) {
   const [score, setScore] = useState(0)
   const [streak, setStreak] = useState(0)
   const [log, setLog] = useState([])
+  const [times, setTimes] = useState([])
+  const t0 = useRef(performance.now())
+  const gameId = useRef(Math.random().toString(36).slice(2, 10))
+  const sent = useRef(false)
   const [best, setBestS] = useState(getBest)
   const done = i >= ROUNDS
   const R = rounds[i]
@@ -162,10 +167,17 @@ function Play({ onExit }) {
     setPicked(n)
     const good = n === R.correct
     setLog((l) => [...l, good])
+    setTimes((t) => [...t, Math.round(performance.now() - t0.current)])
     if (good) { setScore((s) => s + 100 + Math.min(streak, 4) * 25); setStreak((s) => s + 1) } else setStreak(0)
   }
-  const next = () => { setPicked(null); setI((x) => x + 1) }
-  const again = () => { setRounds(newGame()); setI(0); setPicked(null); setScore(0); setStreak(0); setLog([]) }
+  const next = () => { setPicked(null); setI((x) => x + 1); t0.current = performance.now() }
+  const again = () => { setRounds(newGame()); setI(0); setPicked(null); setScore(0); setStreak(0); setLog([]); setTimes([]); sent.current = false; gameId.current = Math.random().toString(36).slice(2, 10); t0.current = performance.now() }
+
+  useEffect(() => {
+    if (!done || sent.current) return
+    sent.current = true
+    sendResult({ game: gameId.current, score, correct: log.filter(Boolean).length, total: ROUNDS, ms: times.reduce((a, b) => a + b, 0), answers: rounds.map((r, n) => ({ id: r.q.id, ok: !!log[n], ms: times[n] ?? 0 })) })
+  }, [done, score, log, times, rounds])
 
   useEffect(() => {
     if (done && score > getBest()) { setBest(score); setBestS(score) }
@@ -303,6 +315,7 @@ export default function Game() {
               Empezar a jugar<Tri />
             </button>
             <p className="mt-4 text-slate-300">8 preguntas, unos 3 minutos.</p>
+            <p className="mt-2 max-w-sm text-sm text-slate-400 lg:max-w-none">Al terminar se guardan tu puntaje y qué preguntas acertaste, sin nombre ni correo, para un estudio del curso.</p>
             {best > 0 && <p className="mt-1 text-lg font-bold text-yellow-300">Tu mejor marca: {best} puntos</p>}
           </article>
         </section>

@@ -70,7 +70,7 @@ function LungPanel({ k, title, color, blurb, v, dmg, vape, ratio, puffKey, drug,
   )
 }
 
-const LEGEND = [['#fb7185', 'pulmón (se infla y desinfla)'], ['#dcfce7', 'círculo: acercamiento a los alvéolos'], ['#334155', 'puntos oscuros: aire atrapado'], ['#1d4ed8', 'bronquios azules: salbutamol actuando']]
+const LEGEND = [['#fb7185', 'pulmón (se infla y desinfla)'], ['#dcfce7', 'círculo: acercamiento a los alvéolos'], ['#334155', 'puntos oscuros: aire que no sale'], ['#1d4ed8', 'bronquios azules: salbutamol actuando']]
 
 /* ───────── 1. escenario ───────── */
 // Parte viva: se suscribe a la respiración solo mientras se ve, así el resto de la sección no se re-renderiza
@@ -88,8 +88,8 @@ const StageLive = memo(function StageLive({ treatment, mode, vape, dE, post, puf
   return (
     <>
       <section ref={ref} className="mt-8 grid gap-10 lg:grid-cols-2 lg:gap-14" aria-label="Pulmones">
-        <LungPanel k="sano" title="Persona sana" color="#15803d" blurb="Los alvéolos están completos y el aire sale rápido." v={vS} dmg={0} vape={0} ratio={S0[treatment].ratio} puffKey={0} drug={false} />
-        <LungPanel k="epoc" title="Persona con EPOC" color="#be123c" blurb="Paredes rotas: el aire entra, pero sale lento y queda atrapado." v={vE} dmg={dE} vape={vape} ratio={E[treatment].ratio} puffKey={puffKey} drug={post} d={200} />
+        <LungPanel k="sano" title="Persona sana" color="#15803d" blurb="Voluntario 1: 32 años, pulmones sanos." v={vS} dmg={0} vape={0} ratio={S0[treatment].ratio} puffKey={0} drug={false} />
+        <LungPanel k="epoc" title="Persona con EPOC" color="#be123c" blurb="Voluntario 2: 37 años, 5 años vapeando de forma constante. Patrón obstructivo." v={vE} dmg={dE} vape={vape} ratio={E[treatment].ratio} puffKey={puffKey} drug={post} d={200} />
       </section>
 
       <ul className="mt-5 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-ink/80" aria-label="Leyenda">
@@ -99,7 +99,7 @@ const StageLive = memo(function StageLive({ treatment, mode, vape, dE, post, puf
         ))}
       </ul>
       <p className="mt-3 text-lg">
-        <strong>El número grande</strong> es el índice FEV₁/FVC: qué porción del aire sale en el primer segundo al soplar fuerte. <strong>Sano: {fmt(S0[treatment].ratio)} %. EPOC: {fmt(E[treatment].ratio)} %.</strong> Por debajo de 70 % hablamos de obstrucción.
+        <strong>El número grande</strong> es el índice FEV₁/FVC: la fracción de aire que se exhala en el primer segundo respecto a la FVC. <strong>Sano: {fmt(S0[treatment].ratio)} %. EPOC: {fmt(E[treatment].ratio)} %.</strong>
       </p>
 
       <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2">
@@ -117,11 +117,11 @@ function Stage({ treatment, pickTreatment, mode, changeMode, vape, setVape, ...l
   return (
     <Band id="simulador" theme="stage">
       <Head n="02" label="Simulador" title="Sano frente a *EPOC*"
-        lead="Aquí comparas dos pulmones respirando: uno sano y uno con enfisema causado por vapeo. Todo lo que muevas cambia lo que ves por dentro." />
+        lead="Compara dos espirometrías realizadas el año pasado: un voluntario de 32 años con pulmones sanos y otro de 37 años que lleva 5 años vapeando de forma constante." />
       <HowTo className="mt-6" title="Cómo usarlo" items={[
-        ['1. Tratamiento', 'Elige “antes” (sin medicina) o “después” de salbutamol, el inhalador de rescate.'],
-        ['2. Maniobra', '“Respiración” es respirar normal. “Espiración forzada” es soplar lo más fuerte posible, como en un examen médico.'],
-        ['3. Vapeo', 'Sube la exposición y mira cómo se daña el pulmón de la derecha.'],
+        ['1. Tratamiento', 'Elige ver los pulmones antes o después de aplicar el broncodilatador salbutamol.'],
+        ['2. Maniobra', '“Respiración” muestra el ciclo normal. “Espiración forzada” muestra exhalar con fuerza desde una inspiración máxima, como en la espirometría.'],
+        ['3. Vapeo', 'Sube la exposición al vapeo y mira cómo cambia el pulmón de la derecha.'],
       ]} />
 
       <form className="mt-6 flex flex-wrap items-end gap-x-12 gap-y-4" onSubmit={noSubmit} aria-label="Controles del simulador">
@@ -136,21 +136,21 @@ function Stage({ treatment, pickTreatment, mode, changeMode, vape, setVape, ...l
 
 /* ───────── 2. salbutamol (estático: nunca se re-renderiza) ───────── */
 const AIRWAYS = [
-  { t: 'Persona sana', c: '#15803d', k: 0.1, drug: false, line: 'Vía despejada: el medicamento casi no cambia nada.', n: `${fmt(S0.pre.fev1, 2)} → ${fmt(S0.post.fev1, 2)} L` },
-  { t: 'EPOC, antes', c: '#be123c', k: 0.7, drug: false, line: 'Músculo apretado: el aire pasa por un tubo angosto.', n: `${fmt(E.pre.fev1, 2)} L` },
-  { t: 'EPOC, después', c: '#1d4ed8', k: 0.5, drug: true, line: 'Músculo relajado: el tubo se ensancha y pasa más aire.', n: `${fmt(E.post.fev1, 2)} L (+${fmt(E.post.fev1 - E.pre.fev1, 2)})` },
+  { t: 'Persona sana', c: '#15803d', k: 0.1, drug: false, line: 'Voluntario sano: el FEV₁ casi no cambia.', n: `${fmt(S0.pre.fev1, 2)} → ${fmt(S0.post.fev1, 2)} L` },
+  { t: 'EPOC, antes', c: '#be123c', k: 0.7, drug: false, line: 'Antes del broncodilatador.', n: `${fmt(E.pre.fev1, 2)} L` },
+  { t: 'EPOC, después', c: '#1d4ed8', k: 0.5, drug: true, line: 'El músculo liso se relaja y el diámetro de la vía aumenta.', n: `${fmt(E.post.fev1, 2)} L (+${fmt(E.post.fev1 - E.pre.fev1, 2)})` },
 ]
 const WHY = [
-  ['Por qué es buen tratamiento', 'Actúa en minutos: abre la vía, sale más aire en el primer segundo y baja la sensación de ahogo. Por eso es el tratamiento de rescate en una crisis.'],
-  ['Por qué mejora “poco”', 'El problema de fondo son las paredes rotas y la pérdida de elasticidad, y eso un broncodilatador no lo repara. Solo alivia la parte del tubo apretado.'],
-  ['Qué no hace', 'No cura la EPOC ni vuelve a unir los alvéolos. Para que un médico hable de respuesta importante busca mejorar al menos 12 % y 200 mL; aquí fue 7,4 % y 70 mL.'],
+  ['Qué hace', 'Relaja el músculo liso que envuelve los bronquios y los bronquiolos, aumenta el diámetro de las vías aéreas y disminuye la resistencia al flujo del aire.'],
+  ['Qué mostraron las espirometrías', 'En la persona sana el FEV₁ pasó de 2,08 a 2,10 L. En la persona con EPOC pasó de 0,95 a 1,02 L.'],
+  ['Familias de broncodilatadores', 'Se agrupan en tres: agonistas beta-2 adrenérgicos, anticolinérgicos y metilxantinas.'],
 ]
 const SalbutamolBand = memo(function SalbutamolBand() {
   return (
     <Band id="salbutamol" theme="drug">
       <h2 className="text-4xl sm:text-6xl"><Split text="¿Qué hace el *salbutamol*?" /></h2>
       <Rv as="p" d={300} className="mt-4 max-w-3xl text-lg text-ink/75 sm:text-xl">
-        Es el inhalador de rescate. Los bronquios, los tubos por donde baja el aire, están rodeados por un músculo. En la EPOC ese músculo se aprieta y el tubo se estrecha. El salbutamol le ordena relajarse. Así se ve un bronquio cortado de lado:
+        El salbutamol es un medicamento que abre los bronquios y las vías respiratorias por las que entra el aire a los pulmones. Es un broncodilatador: relaja el músculo liso que envuelve los bronquios. Así se ve un bronquio cortado de lado:
       </Rv>
       <ul className="mt-8 grid gap-8 md:grid-cols-3">
         {AIRWAYS.map((x, i) => (
@@ -158,7 +158,7 @@ const SalbutamolBand = memo(function SalbutamolBand() {
             <figure>
               <figcaption><strong className="block text-2xl font-extrabold" style={{ color: x.c }}>{x.t}</strong><span className="text-ink/80">{x.line}</span></figcaption>
               <AirwayCross className="mx-auto my-3 max-w-[230px]" contraction={x.k} drug={x.drug} title={`Corte de bronquio: ${x.t}`} />
-              <p className="text-sm font-semibold text-muted">FEV₁ (aire en el 1.er segundo)</p>
+              <p className="text-sm font-semibold text-muted">FEV₁ (aire exhalado en el primer segundo)</p>
               <strong className="font-display text-3xl font-semibold tabular-nums" style={{ color: x.c }}>{x.n}</strong>
             </figure>
           </Rv>
@@ -185,20 +185,20 @@ const SpiroBand = memo(function SpiroBand({ treatment, pickTreatment, tSp, setTS
     <Band id="espirometria" theme="spiro">
       <h2 className="text-4xl sm:text-6xl"><Split text="La espirometría: soplar para *medir*" /></h2>
       <Rv as="p" d={300} className="mt-4 max-w-3xl text-lg text-ink/75 sm:text-xl">
-        Es la prueba que usan los médicos para saber si los pulmones funcionan bien: respiras hondo, soplas en un tubo lo más fuerte y rápido que puedas, y el aparato mide cuánto aire sale y a qué ritmo.
+        Es la prueba de función respiratoria más estandarizada. Evalúa las propiedades mecánicas del sistema respiratorio y es el estándar de oro para identificar obstrucción al flujo aéreo. Mide flujos y volúmenes de aire exhalado desde una inspiración máxima. Es sencilla, rápida y no invasiva.
       </Rv>
       <section className="mt-6 grid gap-6 lg:grid-cols-2" aria-label="Cómo leer la gráfica">
         <HowTo title="Qué muestra esta gráfica" items={[
           ['Compara', 'a una persona sana (verde) con una con EPOC (roja), en el mismo soplido.'],
           ['Eje horizontal', 'segundos desde que empiezas a soplar.'],
-          ['Eje vertical', 'litros de aire que ya sacaste en total.'],
+          ['Eje vertical', 'litros de aire acumulados que se han expulsado.'],
           ['Líneas', 'discontinua = antes del salbutamol; continua = después. La más gruesa es la que elegiste.'],
-          ['Qué notar', 'la verde sube casi de golpe y se estabiliza; la roja sube lento: el aire le sale con dificultad.'],
+          ['Qué notar', 'fíjate en qué tan inclinada sube la curva: si sube empinada al inicio, el aire salió en muy poco tiempo. La meseta, cuando la curva se aplana, indica que ya no sale más aire.'],
         ]} />
         <HowTo title="Tres números que debes conocer" items={[
-          ['FVC', 'el total de aire que sacas soplando (la línea punteada horizontal).'],
-          ['FEV₁', 'el aire que sale en el primer segundo (la línea vertical marcada 1 s).'],
-          ['FEV₁/FVC', 'qué porción del total sale en ese primer segundo. Sano ≈ 72 %, EPOC ≈ 55 %. Bajo 70 % sugiere obstrucción.'],
+          ['FVC', 'capacidad vital forzada: el aire exhalado con fuerza después de una inhalación total (la línea punteada horizontal).'],
+          ['FEV₁', 'volumen espiratorio forzado: el aire exhalado abruptamente en un segundo (la línea vertical marcada 1 s).'],
+          ['FEV₁/FVC', 'la fracción de aire que se exhala en el primer segundo respecto a la FVC. Sano ≈ 72 %, EPOC ≈ 55 %.'],
         ]} />
       </section>
 
@@ -228,12 +228,15 @@ const SpiroBand = memo(function SpiroBand({ treatment, pickTreatment, tSp, setTS
         </ul>
       </section>
       <Note label={`Qué notas en el segundo ${fmt(tSp, 2)}`} className="mt-6">
-        El pulmón sano ya sacó el {fmt((1 - exS.rem) * 100, 0)} % de su aire; el de EPOC, solo el {fmt((1 - exE.rem) * 100, 0)} %. {tSp >= 1 ? '' : 'Mira cuánto cambia en el primer segundo. '}Al final, la EPOC conserva aire atrapado (los puntos oscuros y los pulmones más inflados).
+        El pulmón sano ya sacó el {fmt((1 - exS.rem) * 100, 0)} % de su aire; el de EPOC, solo el {fmt((1 - exE.rem) * 100, 0)} %. {tSp >= 1 ? '' : 'Mira cuánto cambia en el primer segundo.'}
       </Note>
       <details className="mt-5 overflow-x-auto">
         <summary className="hov inline-block cursor-pointer font-semibold ulink">Ver la tabla con todos los datos medidos</summary>
         <ResultsTable treatment={treatment} />
       </details>
+      <Note label="Valores esperados e índice Z" className="mt-6">
+        El voluntario 1 obtiene una FVC de 2,88 L frente a un valor teórico de 2,84 L, y un índice Z de +0,11. El voluntario 2 queda por debajo de lo esperado: su FVC tiene un índice Z de −0,87, pero la desviación más marcada está en el FEV₁ (Z = −2,16) y en el FEV₁/FVC (Z = −2,40), coherentes con un patrón obstructivo. Se considera crítico un valor cercano a −1,645.
+      </Note>
     </Band>
   )
 })
@@ -243,7 +246,7 @@ const MechCharts = memo(function MechCharts({ playing, manualP, manualLimb, mS, 
   const [ref, visible] = useVisible()
   const b = useBreath(playing && visible, manualP, manualLimb)
   const Pc = laplaceP(Teff, r)
-  const status = Pc > b.P ? ['#be123c', 'Tiende a cerrarse (colapsa)'] : mE.d > 0.5 ? ['#be123c', 'Se mantiene abierto, pero atrapa aire'] : ['#15803d', 'Se mantiene abierto']
+  const status = Pc > b.P ? ['#be123c', 'Tiende a cerrarse (colapsa)'] : mE.d > 0.5 ? ['#be123c', 'Se mantiene abierto, con paredes dañadas'] : ['#15803d', 'Se mantiene abierto']
   return (
     <section ref={ref} className="mt-10 grid gap-10 lg:grid-cols-2 lg:gap-14" aria-label="Gráficas de mecánica pulmonar">
       <article>
@@ -252,7 +255,7 @@ const MechCharts = memo(function MechCharts({ playing, manualP, manualLimb, mS, 
           ['Compara', 'el pulmón sano (verde) con el de EPOC (rojo).'],
           ['Horizontal', 'la presión con la que se infla; vertical: cuánto aire cabe (litros).'],
           ['Línea continua', 'al inspirar; punteada: al espirar.'],
-          ['Qué notar', 'el rojo está más arriba: sus paredes flojas se estiran de más y, al espirar, queda más aire adentro (aire atrapado).'],
+          ['Qué notar', 'cuando se altera el equilibrio del surfactante, cambia la relación presión-volumen.'],
         ]} />
         <p className="mt-4 font-semibold">Arrastra los puntos sobre la curva: a la derecha inflas, a la izquierda desinflas.</p>
         <PVChart P={b.P} limb={b.limb} mS={mS} mE={mE} onGrab={grabPV} onChange={onPV} />
@@ -263,14 +266,14 @@ const MechCharts = memo(function MechCharts({ playing, manualP, manualLimb, mS, 
         <HowTo className="mt-3" title="Cómo leerla" items={[
           ['Muestra', 'la presión que necesita un alvéolo para no cerrarse (vertical) según su tamaño (horizontal), con la regla P = 2T/r.'],
           ['Tres líneas', 'sin surfactante (roja punteada), con surfactante normal (verde) y con tu nivel de vapeo (cian).'],
-          ['Qué notar', 'cuanto más pequeño el alvéolo (izquierda), más presión necesita. El vapeo sube la línea cian hacia la roja.'],
+          ['Qué notar', 'cuanto más pequeño el radio (izquierda), mayor la presión. El surfactante evita que la tensión suba; con vapeo la línea cian sube hacia la roja.'],
         ]} />
         <p className="mt-4 font-semibold">Arrastra sobre la gráfica para cambiar el tamaño del alvéolo.</p>
         <Suspense fallback={<p className="h-72 text-muted">Cargando gráfica…</p>}>
           <LaplaceChart r={Math.round(r)} onR={setR} T={T} Teff={Teff} />
         </Suspense>
         <ul className="mt-3 grid grid-cols-3 gap-4">
-          <li><p className="text-sm text-muted">Pegajosidad con vapeo</p><output className="font-display text-3xl font-semibold tabular-nums" style={{ color: '#0e7490' }}>{fmt(Teff)}<span className={unit}>mN/m</span></output></li>
+          <li><p className="text-sm text-muted">Tensión superficial con vapeo</p><output className="font-display text-3xl font-semibold tabular-nums" style={{ color: '#0e7490' }}>{fmt(Teff)}<span className={unit}>mN/m</span></output></li>
           <li><p className="text-sm text-muted">Presión para abrirlo</p><output className="font-display text-3xl font-semibold tabular-nums">{fmt(Pc)}<span className={unit}>cmH₂O</span></output></li>
           <li><p className="text-sm text-muted">Presión disponible</p><output className="font-display text-3xl font-semibold tabular-nums">{fmt(b.P)}<span className={unit}>cmH₂O</span></output></li>
         </ul>
@@ -284,10 +287,10 @@ const MechBand = memo(function MechBand({ vape, setVape, T, setT, r, setR, ...ch
   return (
     <Band id="mecanica" theme="mech">
       <h2 className="text-4xl sm:text-6xl"><Split text="Por dentro: presión, volumen y *Laplace*" /></h2>
-      <Rv as="p" d={300} className="mt-4 max-w-3xl text-lg text-ink/75 sm:text-xl">Dos gráficas que explican por qué el pulmón con vapeo se comporta distinto. Los deslizadores de abajo cambian ambas.</Rv>
+      <Rv as="p" d={300} className="mt-4 max-w-3xl text-lg text-ink/75 sm:text-xl">Dos gráficas: la relación presión-volumen y la ley de Laplace. Los deslizadores de abajo cambian ambas.</Rv>
       <form className="mt-6 grid gap-6 sm:grid-cols-3" onSubmit={noSubmit}>
         <Slider label="Exposición al vapeo" value={Math.round(vape * 100)} min={0} max={100} unit="%" onChange={(v) => setVape(v / 100)} color="var(--color-copd)" />
-        <Slider label="Pegajosidad interna basal (T, mN/m)" value={T} min={5} max={40} onChange={setT} color="#0e7490" />
+        <Slider label="Tensión superficial basal (T, mN/m)" value={T} min={5} max={40} onChange={setT} color="#0e7490" />
         <Slider label="Tamaño del alvéolo (radio, µm)" value={r} min={40} max={140} onChange={setR} />
       </form>
       <MechCharts T={T} r={r} setR={setR} {...charts} />

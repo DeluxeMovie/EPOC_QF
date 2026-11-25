@@ -2,26 +2,26 @@ import { useState } from 'react'
 import { Band, Head, Tabs, Slider, Button, Rv, Split, Tri, Note } from '../components/ui'
 import AlveolusZoom from '../components/AlveolusZoom'
 import { reveal } from '../lib/reveal'
-import { laplaceP, fmt, T_MAX } from '../lib/physics'
+import { laplaceP, fmt } from '../lib/physics'
 
 /* ── 1. cifras ── */
 function Facts() {
   const big = 'font-display font-extrabold leading-[0.85] tracking-tighter'
   return (
-    <Band id="problema" theme="facts">
+    <Band theme="facts">
       <Head n="01" label="Situación problema" title="Una enfermedad vieja, un nuevo *sospechoso*"
-        lead="La EPOC es una enfermedad que hace cada vez más difícil sacar el aire de los pulmones. Durante décadas se la asoció casi solo con fumar cigarrillo. Hoy aparece otra pregunta: ¿qué le pasa al pulmón de un joven que vapea?" />
+        lead="Históricamente, la causa principal de la Enfermedad Pulmonar Obstructiva Crónica (EPOC) es el consumo de tabaco. En los últimos años aumentó el uso de vapeadores entre la población joven." />
       <ul className="mt-10 grid items-end gap-10 lg:grid-cols-2 lg:gap-16">
         <li ref={reveal}>
           <p className="mask"><span className={`${big} text-[clamp(6rem,16vw,11rem)] text-[#be123c]`}>3.ª</span></p>
           <hr className="draw mt-5 h-[3px] border-0 bg-[#be123c]" style={{ '--d': '500ms' }} />
-          <p className="rv mt-4 text-xl font-semibold" style={{ '--d': '700ms' }}>causa de muerte en el mundo es la EPOC.</p>
-          <p className="rv mt-1 text-muted" style={{ '--d': '800ms' }}>Es decir, solo hay dos causas de muerte más frecuentes. <cite className="not-italic">Fuente: Organización Mundial de la Salud (OMS).</cite></p>
+          <p className="rv mt-4 text-xl font-semibold" style={{ '--d': '700ms' }}>causa de muerte en el mundo es la EPOC, según la OMS.</p>
+          <p className="rv mt-1 text-muted" style={{ '--d': '800ms' }}><cite className="not-italic">Fuente: Organización Mundial de la Salud (OMS), 2026.</cite></p>
         </li>
         <li ref={reveal}>
           <p className="mask"><span className={`${big} flex items-center gap-4 text-[clamp(3.2rem,8vw,6rem)] italic text-[#0369a1]`}><Tri dir="up" className="!h-[0.5em] !w-[0.5em]" />vapeo</span></p>
           <hr className="draw mt-5 h-[3px] border-0 bg-[#0369a1]" style={{ '--d': '700ms' }} />
-          <p className="rv mt-4 text-xl font-semibold" style={{ '--d': '900ms' }}>crece entre los jóvenes, un grupo que antes fumaba menos.</p>
+          <p className="rv mt-4 text-xl font-semibold" style={{ '--d': '900ms' }}>aumenta entre la población joven.</p>
           <p className="rv mt-1 text-muted" style={{ '--d': '1000ms' }}><cite className="not-italic">Fuente: Ministerio de Salud y Protección Social, 2025.</cite></p>
         </li>
       </ul>
@@ -32,33 +32,33 @@ function Facts() {
 function Question() {
   return (
     <Band theme="question">
-      <h2 className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--accent)' }}>La pregunta que guía todo el proyecto</h2>
+      <h2 className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--accent)' }}>Pregunta problema</h2>
       <p className="mt-4 max-w-5xl font-display text-3xl font-semibold leading-[1.1] tracking-tight text-balance sm:text-5xl">
-        <Split step={55} text="¿Cómo afecta el vapeo la biomecánica ventilatoria a nivel alveolar, causando EPOC, y cómo responde este proceso al tratamiento farmacológico?" />
+        <Split step={55} text="¿De qué manera el consumo de vapeadores afecta la biomecánica ventilatoria a nivel alveolar causando EPOC y cómo responde este proceso mecánico al tratamiento farmacológico?" />
       </p>
-      <Rv as="p" d={800} className="mt-5 max-w-3xl text-lg text-slate-300">En palabras simples: ¿qué le pasa a la mecánica de la respiración, dentro de las bolsitas de aire del pulmón, cuando se vapea? ¿Y cómo ayuda un medicamento?</Rv>
+      <Rv as="p" d={800} className="mt-5 max-w-3xl text-lg text-slate-300"><strong className="text-white">Objetivo general.</strong> Explicar mediante un modelo interactivo los fenómenos físicos que afectan al surfactante pulmonar.</Rv>
     </Band>
   )
 }
 
 /* ── 2. qué es un alvéolo ── */
 const INSIDE = [
-  ['Qué los mantiene abiertos', 'Por dentro son húmedos y el agua tiende a pegar sus propias paredes, como un globo mojado que se cierra. Una capa parecida a un jabón natural, el surfactante, evita que eso pase.'],
-  ['Qué pasa en la EPOC', 'Las paredes se destruyen y las vías se estrechan. El pulmón pierde elasticidad: el aire entra, pero ya no es empujado hacia afuera y se queda atrapado.'],
-  ['Qué se siente', 'Falta de aire al hacer esfuerzos, tos y cansancio. Como el daño es mayormente permanente, la enfermedad no se cura: se trata para aliviarla y frenarla.'],
+  ['Qué es el alvéolo', 'Bolsa diminuta llena de aire al final de los bronquiolos. Allí el oxígeno pasa a la sangre y el dióxido de carbono pasa de la sangre al alvéolo y se expulsa al espirar.'],
+  ['Qué hace el surfactante', 'Es una mezcla de lípidos y proteínas. Reduce la tensión superficial en el alvéolo para evitar que colapse durante la espiración.'],
+  ['Qué es el enfisema', 'Es uno de los dos tipos de afección de la EPOC. Las paredes entre los sacos de aire están dañadas y cuesta más sacar el aire.'],
 ]
 function Inside() {
   return (
     <Band theme="inside">
-      <h2 className="text-4xl sm:text-6xl"><Split text="Antes de seguir: ¿qué es un *alvéolo*?" /></h2>
-      <Rv as="p" d={300} className="mt-4 max-w-3xl text-lg text-ink/75 sm:text-xl">Tus bronquios se ramifican como un árbol y terminan en millones de bolsitas llamadas alvéolos, parecidas a racimos de globos diminutos. En sus paredes, el oxígeno pasa a la sangre y el dióxido de carbono sale. Así se ve uno sano y uno dañado:</Rv>
+      <h2 className="text-4xl sm:text-6xl"><Split text="El *alvéolo* y el enfisema" /></h2>
+      <Rv as="p" d={300} className="mt-4 max-w-3xl text-lg text-ink/75 sm:text-xl">La EPOC es una enfermedad obstructiva crónica causada por lesiones en las vías respiratorias. Puede causar inflamación y otros problemas que bloquean el flujo de aire y dificultan la respiración. Este proyecto se centra en el enfisema. Así se compara un alvéolo normal con uno con enfisema:</Rv>
       <section className="mt-8 grid gap-8 sm:grid-cols-2 lg:gap-16" aria-label="Comparación de alvéolos">
         <Rv as="figure" kind="rv-s">
-          <figcaption className="mb-3"><strong className="block text-2xl font-extrabold text-[#15803d]">Alvéolos sanos</strong><span className="text-ink/70">Paredes completas y elásticas: se llenan y se vacían como un globo nuevo.</span></figcaption>
+          <figcaption className="mb-3"><strong className="block text-2xl font-extrabold text-[#15803d]">Alvéolos sanos</strong><span className="text-ink/70">Paredes íntegras entre los sacos de aire.</span></figcaption>
           <AlveolusZoom className="mx-auto max-w-[360px]" kind="sano" damage={0} trapped={0} caliber={1} scale={1} title="Alvéolos sanos con paredes íntegras" />
         </Rv>
         <Rv as="figure" kind="rv-s" d={150}>
-          <figcaption className="mb-3"><strong className="block text-2xl font-extrabold text-[#be123c]">Alvéolos con enfisema</strong><span className="text-ink/70">Paredes rotas: varios alvéolos se funden en una bolsa grande y floja que retiene el aire.</span></figcaption>
+          <figcaption className="mb-3"><strong className="block text-2xl font-extrabold text-[#be123c]">Alvéolos con enfisema</strong><span className="text-ink/70">Paredes dañadas entre los sacos de aire: mayor dificultad para sacar el aire.</span></figcaption>
           <AlveolusZoom className="mx-auto max-w-[360px]" kind="epoc" damage={0.7} trapped={0.45} caliber={0.6} scale={1} title="Alvéolos con enfisema y paredes rotas" />
         </Rv>
       </section>
@@ -76,16 +76,16 @@ function Inside() {
 
 /* ── 3. qué le hace el vapeo ── */
 const COMP = [
-  ['Nicotina', 'Sustancia adictiva que además irrita e inflama las vías respiratorias.'],
-  ['Saborizantes', 'Dan sabor dulce o mentolado, pero algunos (como el diacetilo) dañan las vías pequeñas al inhalarse calentados.'],
-  ['NNN y NNK', 'N-nitrosonornicotina y nitrosamina cetona: compuestos de la familia de las nitrosaminas, considerados cancerígenos. Se han detectado en aerosoles de vapeadores.'],
-  ['Metales pesados', 'La resistencia que calienta el líquido puede soltar partículas de níquel, cromo o plomo hacia el aerosol.'],
+  ['Nicotina y saborizantes', 'El aerosol contiene nicotina en algunos casos, saborizantes y otros químicos.'],
+  ['NNN y NNK', 'n-nitrosonornicotina y nitrosamina cetona: sustancias cancerígenas presentes en el aerosol.'],
+  ['Metales pesados', 'También se han encontrado metales pesados.'],
+  ['De dónde viene el daño', 'Principalmente de materiales como los saborizantes y el tabaco, y de las sustancias cancerígenas.'],
 ]
 const STEPS = [
-  { t: 'Inhalación', d: 'Cada calada lleva partículas diminutas hasta el fondo del pulmón, hasta los alvéolos.', v: { kind: 'sano', damage: 0, trapped: 0, aerosol: 1 } },
-  { t: 'Surfactante alterado', d: 'El aerosol y la inflamación dañan la capa de “jabón” del alvéolo. Sin ella el agua pega las paredes y cuesta más mantenerlo abierto: sube la tensión superficial.', v: { kind: 'epoc', damage: 0.2, trapped: 0.1, aerosol: 0.6 } },
-  { t: 'Paredes destruidas', d: 'La inflamación constante activa sustancias que “digieren” las paredes. Los alvéolos vecinos se funden en bolsas grandes y flojas: eso es el enfisema.', v: { kind: 'epoc', damage: 0.65, trapped: 0.35, aerosol: 0.3 } },
-  { t: 'Aire atrapado', d: 'Las bolsas flojas ya no empujan el aire hacia afuera y las vías se estrechan al soplar. El aire entra pero no sale del todo: aparece la falta de aire.', v: { kind: 'epoc', damage: 0.95, trapped: 0.9, aerosol: 0 } },
+  { t: 'Inhalación del aerosol', d: 'El vapeador es un dispositivo de batería que permite inhalar un aerosol con nicotina (en algunos casos), saborizantes y otros químicos.', v: { kind: 'sano', damage: 0, trapped: 0, aerosol: 1 } },
+  { t: 'Surfactante alterado', d: 'La exposición a los vapeadores altera el surfactante. Cuando se rompe su equilibrio, cambia la relación presión-volumen.', v: { kind: 'epoc', damage: 0.2, trapped: 0.1, aerosol: 0.6 } },
+  { t: 'Alvéolos pequeños se cierran', d: 'Por la relación tensión-radio (ley de Laplace), el surfactante alterado favorece el colapso y el cierre temprano de los alvéolos pequeños.', v: { kind: 'epoc', damage: 0.65, trapped: 0.35, aerosol: 0.3 } },
+  { t: 'Patrón obstructivo', d: 'En el enfisema las paredes de los alvéolos están tan juntas que no permiten distenderse. El resultado es un patrón obstructivo, como se ve en la espirometría.', v: { kind: 'epoc', damage: 0.95, trapped: 0.9, aerosol: 0 } },
 ]
 function Pathway() {
   const [i, setI] = useState(0)
@@ -93,7 +93,7 @@ function Pathway() {
   return (
     <Band theme="path">
       <h2 className="text-4xl sm:text-6xl"><Split text="¿Qué le hace el vapeo al *alvéolo*?" /></h2>
-      <Rv as="p" d={300} className="mt-4 max-w-3xl text-lg text-ink/75 sm:text-xl">Un vapeador calienta un líquido hasta formar un aerosol que se inhala. No es “solo vapor de agua”: arrastra sustancias que pueden dañar el pulmón.</Rv>
+      <Rv as="p" d={300} className="mt-4 max-w-3xl text-lg text-ink/75 sm:text-xl">Los vapeadores, también llamados cigarrillos electrónicos, son dispositivos que dependen de baterías y permiten inhalar un aerosol. Este es su contenido y su efecto en el alvéolo:</Rv>
 
       <ul className="mt-8 grid gap-x-12 gap-y-5 sm:grid-cols-2">
         {COMP.map(([k, d], n) => (
@@ -121,8 +121,8 @@ function Pathway() {
         </section>
       </section>
 
-      <Note label="Por qué importa en jóvenes" className="mt-10">
-        Los pulmones siguen madurando hasta los 20 o 25 años y la EPOC tarda años en notarse: el daño de hoy aparece mucho después. La evidencia sobre vapeo y EPOC aún se está construyendo; por eso este proyecto usa modelos didácticos para entender el mecanismo.
+      <Note label="Efectos reportados del vapeador" className="mt-10">
+        Boca y faringe secas, tos, sensación de quemadura en boca, labios y faringe, dolor de cabeza, palpitaciones, problemas para respirar, mareo, disminución del gusto y somnolencia. También manifestaciones respiratorias y gastrointestinales, y enfermedades cardiovasculares como el infarto de miocardio, según el historial del usuario.
       </Note>
     </Band>
   )
@@ -147,9 +147,9 @@ function Tension() {
       </svg>
       <figcaption className="mt-3 flex max-w-md items-end justify-between gap-6">
         <Tabs label="Surfactante" value={on} onChange={setOn} options={[{ value: true, label: 'Con surfactante', color: '#0e7490' }, { value: false, label: 'Sin surfactante', color: '#be123c' }]} />
-        <output className="font-display text-4xl font-semibold tabular-nums">{on ? 25 : T_MAX}<span className="ml-1 font-sans text-sm font-normal tracking-normal text-muted">mN/m</span></output>
+        <output className="font-display text-4xl font-semibold tabular-nums">{on ? '0–2' : 'alta'}<span className="ml-1 font-sans text-sm font-normal tracking-normal text-muted">mN/m</span></output>
       </figcaption>
-      <p className="mt-2 max-w-md text-sm text-muted">Los palitos cian son moléculas de surfactante. El número es la tensión superficial (mN/m, milinewton por metro, la unidad de esa fuerza).</p>
+      <p className="mt-2 max-w-md text-sm text-muted">Los palitos cian son moléculas de surfactante. El número es la tensión superficial en mN/m. Con surfactante baja a valores cercanos a 0–2 mN/m.</p>
     </figure>
   )
 }
@@ -164,15 +164,15 @@ function Laplace() {
         <Slider label="Tensión T (mN/m)" value={T} min={5} max={70} onChange={setT} color="#0e7490" />
         <Slider label="Tamaño r (µm)" value={r} min={40} max={140} onChange={setR} />
       </form>
-      <figcaption className="mt-3 font-display text-5xl font-semibold tabular-nums">{fmt(P)} <span className="font-sans text-base font-normal tracking-normal text-muted">cmH₂O de presión para mantenerlo abierto</span></figcaption>
+      <figcaption className="mt-3 font-display text-5xl font-semibold tabular-nums">{fmt(P)} <span className="font-sans text-base font-normal tracking-normal text-muted">cmH₂O: presión P del alvéolo</span></figcaption>
     </figure>
   )
 }
 const SALB = [
-  ['Llega al músculo', 'Alrededor de cada bronquio hay un músculo. En la EPOC se aprieta y el tubo se estrecha.'],
-  ['Se une al receptor β₂', 'El salbutamol encaja en unos “botones” del músculo llamados receptores beta-2.'],
-  ['El músculo se relaja', 'Dentro de la célula sube una señal (AMPc) que baja el calcio y suelta el músculo.'],
-  ['El tubo se ensancha', 'Pasa más aire con menos esfuerzo. Mejora poco en la EPOC porque las paredes rotas no se reparan.'],
+  ['Músculo liso', 'Un músculo liso envuelve los bronquios y los bronquiolos.'],
+  ['Relaja el músculo', 'El efecto principal de un broncodilatador es relajar ese músculo liso.'],
+  ['Aumenta el diámetro', 'Al relajarse el músculo, las vías aéreas se hacen más anchas.'],
+  ['Menos resistencia', 'Disminuye la resistencia al flujo del aire. El salbutamol abre los bronquios y las vías por las que entra el aire a los pulmones.'],
 ]
 function Salbutamol() {
   const [s, setS] = useState(0)
@@ -196,9 +196,9 @@ function Salbutamol() {
 }
 
 const IDEAS = [
-  { v: 'st', label: 'Tensión superficial', simple: 'Dentro del alvéolo hay una capa de agua y las moléculas de agua se atraen entre sí, tendiendo a cerrar el espacio, como un globo mojado que se pega. Esa fuerza se llama tensión superficial.', why: 'El surfactante la reduce y deja el alvéolo abierto. El vapeo altera el surfactante y la tensión sube.', demo: Tension },
-  { v: 'lp', label: 'Ley de Laplace', simple: 'Es una regla de la física: la presión que hace falta para que un alvéolo no se cierre (P) sube cuando la tensión (T) sube y también cuando el alvéolo es más pequeño (r).', why: 'Con poco surfactante, T es alta: los alvéolos pequeños se cierran y vacían su aire hacia los grandes. Prueba los deslizadores.', demo: Laplace },
-  { v: 'sb', label: 'Salbutamol', simple: 'Es un broncodilatador: un medicamento que abre los bronquios, los tubos por donde baja el aire. Se usa en inhalador cuando falta el aire.', why: 'Actúa sobre el músculo de las vías, no sobre las paredes de los alvéolos. Por eso ayuda, pero no cura la EPOC.', demo: Salbutamol },
+  { v: 'st', label: 'Tensión superficial', simple: 'Es una propiedad de la superficie de un líquido que hace que se comporte como una película delgada y elástica que mantiene unido al líquido. Surge de las fuerzas de cohesión entre sus moléculas.', why: 'El surfactante reduce la tensión superficial en la interfase aire-líquido del alvéolo para evitar su colapso al espirar.', demo: Tension },
+  { v: 'lp', label: 'Ley de Laplace', simple: 'A medida que aumenta el radio de una esfera, disminuye el gradiente de presión a través de la pared. Y a medida que aumenta la tensión superficial, aumenta ese gradiente. Se escribe P = 2T/r.', why: 'P es la presión o tendencia del alvéolo a contraerse o abrirse, T la tensión superficial y r el radio. Prueba los deslizadores.', demo: Laplace },
+  { v: 'sb', label: 'Salbutamol', simple: 'Es un medicamento que abre los bronquios y las vías respiratorias por las que entra el aire a los pulmones. Sirve para tratar dificultades para respirar producidas por diferentes enfermedades.', why: 'Es un broncodilatador: relaja el músculo liso que envuelve los bronquios y los bronquiolos.', demo: Salbutamol },
 ]
 function Ideas() {
   const [v, setV] = useState('st')
@@ -206,7 +206,7 @@ function Ideas() {
   const Demo = cur.demo
   return (
     <Band theme="ideas">
-      <h2 className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--accent)' }}>Tres ideas que necesitas para el simulador</h2>
+      <h2 className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--accent)' }}>Tres ideas para el simulador</h2>
       <Rv>
         <Tabs label="Concepto" value={v} onChange={setV} className="mt-3 flex-wrap !gap-x-8 [&_button]:pb-1 [&_button]:font-display [&_button]:text-3xl [&_button]:font-extrabold [&_button]:tracking-tight sm:[&_button]:text-5xl"
           options={IDEAS.map((x) => ({ value: x.v, label: x.label }))} />
@@ -226,22 +226,24 @@ function Ideas() {
 
 /* ── 5. glosario ── */
 const GLOS = [
-  ['Alvéolo', 'Bolsita de aire donde el oxígeno pasa a la sangre.'],
-  ['Surfactante', 'Capa tipo jabón del pulmón; evita que los alvéolos se cierren.'],
-  ['Tensión superficial', 'Fuerza que pega las paredes húmedas de un alvéolo.'],
-  ['Enfisema', 'Daño de las paredes alveolares: se funden y pierden elasticidad.'],
-  ['Broncodilatador', 'Medicamento que abre los bronquios. El salbutamol es uno.'],
-  ['Espirometría', 'Prueba en la que soplas fuerte en un tubo para medir tus pulmones.'],
-  ['FVC', 'Litros totales de aire que puedes sacar soplando con fuerza.'],
-  ['FEV₁', 'Litros que salen durante el primer segundo de ese soplido.'],
-  ['FEV₁/FVC', 'Qué parte del aire sale en el primer segundo. Bajo 70 % sugiere obstrucción.'],
-  ['cmH₂O', 'Unidad de presión: centímetros de columna de agua.'],
+  ['Alvéolo', 'Bolsa diminuta llena de aire al final de los bronquiolos, donde se intercambian oxígeno y dióxido de carbono.'],
+  ['Surfactante', 'Mezcla de lípidos y proteínas que reduce la tensión superficial del alvéolo.'],
+  ['Tensión superficial', 'Propiedad que hace que la superficie de un líquido se comporte como una película elástica.'],
+  ['Ley de Laplace', 'P = 2T/r: relaciona la presión, la tensión superficial y el radio.'],
+  ['EPOC', 'Enfermedad que obstruye de forma persistente el flujo de aire.'],
+  ['Enfisema', 'Daño en las paredes entre los sacos de aire; cuesta más sacar el aire.'],
+  ['Vapeador', 'Cigarrillo electrónico: dispositivo de batería que permite inhalar un aerosol.'],
+  ['Broncodilatador', 'Fármaco que relaja el músculo liso de bronquios y bronquiolos.'],
+  ['Espirometría', 'Prueba que mide flujos y volúmenes de aire exhalado desde una inspiración máxima.'],
+  ['FVC', 'Capacidad vital forzada: aire exhalado con fuerza tras una inhalación total.'],
+  ['FEV₁', 'Volumen espiratorio forzado en el primer segundo.'],
+  ['FEV₁/FVC', 'Fracción del aire que se exhala en el primer segundo respecto a la FVC.'],
 ]
 function Glossary() {
   return (
-    <Band theme="gloss">
+    <Band id="problema" theme="gloss">
       <h2 className="text-3xl sm:text-5xl"><Split text="Glosario *rápido*" /></h2>
-      <p className="mt-2 text-lg text-ink/70">Vuelve aquí cuando aparezca una palabra nueva.</p>
+      <p className="mt-2 text-lg text-ink/70">Las palabras que aparecen en toda la página.</p>
       <ul className="mt-6 grid gap-x-14 sm:grid-cols-2">
         {GLOS.map(([k, d], i) => (
           <Rv as="li" key={k} d={(i % 5) * 60} className="border-t border-black/10 py-3 text-ink/75">
@@ -256,12 +258,12 @@ function Glossary() {
 export default function Problem() {
   return (
     <>
+      <Glossary />
       <Facts />
       <Question />
       <Inside />
       <Pathway />
       <Ideas />
-      <Glossary />
     </>
   )
 }
