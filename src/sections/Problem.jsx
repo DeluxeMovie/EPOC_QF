@@ -37,6 +37,20 @@ function Question() {
         <Split step={55} text="¿De qué manera el consumo de vapeadores afecta la biomecánica ventilatoria a nivel alveolar causando EPOC y cómo responde este proceso mecánico al tratamiento farmacológico?" />
       </p>
       <Rv as="p" d={800} className="mt-5 max-w-3xl text-lg text-slate-300"><strong className="text-white">Objetivo general.</strong> Explicar mediante un modelo interactivo los fenómenos físicos que afectan al surfactante pulmonar.</Rv>
+      <section className="mt-8 grid gap-8 lg:grid-cols-[1.4fr_1fr]" aria-label="Objetivos y delimitación">
+        <Rv as="article" d={900}>
+          <h3 className="font-sans text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Objetivos específicos</h3>
+          <ol className="mt-3 space-y-3 text-lg text-slate-200">
+            <li><strong className="text-white">1. </strong>Explicar el comportamiento mecánico del sistema alveolar mediante la tensión superficial, la ley de Laplace y la curva presión-volumen en condiciones fisiológicas y patológicas.</li>
+            <li><strong className="text-white">2. </strong>Relacionar las alteraciones observadas en la espirometría (y la respuesta parcial al salbutamol) con los cambios en la mecánica alveolar descritos por esos fenómenos físicos.</li>
+            <li><strong className="text-white">3. </strong>Comunicar mediante una página web la información obtenida en el análisis de los fenómenos físicos y fisiológicos.</li>
+          </ol>
+        </Rv>
+        <Rv as="article" d={1000}>
+          <h3 className="font-sans text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Delimitación</h3>
+          <p className="mt-3 text-lg text-slate-200">La población objetivo son estudiantes de Química Farmacéutica de la Pontificia Universidad Javeriana que cursan primer semestre.</p>
+        </Rv>
+      </section>
     </Band>
   )
 }
@@ -45,7 +59,7 @@ function Question() {
 const INSIDE = [
   ['Qué es el alvéolo', 'Bolsa diminuta llena de aire al final de los bronquiolos. Allí el oxígeno pasa a la sangre y el dióxido de carbono pasa de la sangre al alvéolo y se expulsa al espirar.'],
   ['Qué hace el surfactante', 'Es una mezcla de lípidos y proteínas. Reduce la tensión superficial en el alvéolo para evitar que colapse durante la espiración.'],
-  ['Qué es el enfisema', 'Es uno de los dos tipos de afección de la EPOC. Las paredes entre los sacos de aire están dañadas y cuesta más sacar el aire.'],
+  ['Qué es el enfisema', 'Es uno de los dos tipos de afección de la EPOC. Las paredes entre los sacos de aire están dañadas y cuesta más sacar el aire. Se pierde elasticidad y las vías pequeñas pierden soporte.'],
 ]
 function Inside() {
   return (
@@ -83,9 +97,9 @@ const COMP = [
 ]
 const STEPS = [
   { t: 'Inhalación del aerosol', d: 'El vapeador es un dispositivo de batería que permite inhalar un aerosol con nicotina (en algunos casos), saborizantes y otros químicos.', v: { kind: 'sano', damage: 0, trapped: 0, aerosol: 1 } },
-  { t: 'Surfactante alterado', d: 'La exposición a los vapeadores altera el surfactante. Cuando se rompe su equilibrio, cambia la relación presión-volumen.', v: { kind: 'epoc', damage: 0.2, trapped: 0.1, aerosol: 0.6 } },
-  { t: 'Alvéolos pequeños se cierran', d: 'Por la relación tensión-radio (ley de Laplace), el surfactante alterado favorece el colapso y el cierre temprano de los alvéolos pequeños.', v: { kind: 'epoc', damage: 0.65, trapped: 0.35, aerosol: 0.3 } },
-  { t: 'Patrón obstructivo', d: 'En el enfisema las paredes de los alvéolos están tan juntas que no permiten distenderse. El resultado es un patrón obstructivo, como se ve en la espirometría.', v: { kind: 'epoc', damage: 0.95, trapped: 0.9, aerosol: 0 } },
+  { t: 'Surfactante alterado', d: 'Los aerosoles de los vapeadores pueden alterar componentes del surfactante, como el colesterol, que regula la viscosidad de su película. Cuando se rompe su equilibrio, cambia la relación presión-volumen.', v: { kind: 'epoc', damage: 0.2, trapped: 0.1, aerosol: 0.6 } },
+  { t: 'Alvéolos pequeños se cierran', d: 'Sin surfactante, la tensión superficial favorece el colapso: el alvéolo pequeño tiene más presión que el grande y su aire pasa al grande, así que el pequeño se cierra.', v: { kind: 'epoc', damage: 0.65, trapped: 0.35, aerosol: 0.3 } },
+  { t: 'Patrón obstructivo', d: 'En el enfisema la destrucción de las paredes alveolares quita elasticidad y soporte a las vías pequeñas, que pueden estrecharse o colapsar al espirar. Aumenta la resistencia y el aire sale con dificultad.', v: { kind: 'epoc', damage: 0.95, trapped: 0.9, aerosol: 0 } },
 ]
 function Pathway() {
   const [i, setI] = useState(0)
@@ -196,17 +210,30 @@ function Salbutamol() {
 }
 
 const IDEAS = [
-  { v: 'st', label: 'Tensión superficial', simple: 'Es una propiedad de la superficie de un líquido que hace que se comporte como una película delgada y elástica que mantiene unido al líquido. Surge de las fuerzas de cohesión entre sus moléculas.', why: 'El surfactante reduce la tensión superficial en la interfase aire-líquido del alvéolo para evitar su colapso al espirar.', demo: Tension },
-  { v: 'lp', label: 'Ley de Laplace', simple: 'A medida que aumenta el radio de una esfera, disminuye el gradiente de presión a través de la pared. Y a medida que aumenta la tensión superficial, aumenta ese gradiente. Se escribe P = 2T/r.', why: 'P es la presión o tendencia del alvéolo a contraerse o abrirse, T la tensión superficial y r el radio. Prueba los deslizadores.', demo: Laplace },
-  { v: 'sb', label: 'Salbutamol', simple: 'Es un medicamento que abre los bronquios y las vías respiratorias por las que entra el aire a los pulmones. Sirve para tratar dificultades para respirar producidas por diferentes enfermedades.', why: 'Es un broncodilatador: relaja el músculo liso que envuelve los bronquios y los bronquiolos.', demo: Salbutamol },
+  { v: 'st', label: 'Tensión superficial', simple: 'Es una propiedad de la superficie de un líquido que hace que se comporte como una película delgada y elástica que mantiene unido al líquido. Surge de las fuerzas de cohesión entre sus moléculas.', why: 'El surfactante reduce la tensión superficial en la interfase aire-líquido del alvéolo para evitar su colapso al espirar.', more: 'Composición. Cerca del 90 % del surfactante, en masa, son lípidos organizados en una monocapa anfipática: cabezas polares hacia el agua y colas de hidrocarburo hacia el aire. El fosfolípido principal es la DPPC, con dos cadenas saturadas de ácido palmítico que se empaquetan densamente al comprimirse en la espiración. Los fosfolípidos insaturados y el fosfatidilglicerol (PG) aportan fluidez y rápida reextensión al inspirar, y el colesterol regula la microviscosidad de la película. Este último puede alterarse con agentes inhalados como los aerosoles de los vapeadores.', demo: Tension },
+  { v: 'lp', label: 'Ley de Laplace', simple: 'A medida que aumenta el radio de una esfera, disminuye el gradiente de presión a través de la pared. Y a medida que aumenta la tensión superficial, aumenta ese gradiente. Se escribe P = 2T/r.', why: 'P es la presión o tendencia del alvéolo a contraerse o abrirse, T la tensión superficial y r el radio. Prueba los deslizadores.', more: 'Dos alvéolos conectados. Con la misma tensión superficial, el de menor radio tiene más presión y el aire iría hacia el grande, colapsando el pequeño. El surfactante lo evita porque baja la tensión superficial a medida que se reduce el área de la superficie alveolar.', demo: Laplace },
+  { v: 'sb', label: 'Salbutamol', simple: 'Es un medicamento que abre los bronquios y las vías respiratorias por las que entra el aire a los pulmones. Sirve para tratar dificultades para respirar producidas por diferentes enfermedades.', why: 'Es un broncodilatador: relaja el músculo liso que envuelve los bronquios y los bronquiolos.', more: 'Actúa como agonista de los receptores β2-adrenérgicos del músculo liso bronquial: favorece su relajación y la broncodilatación. Al aumentar el radio de la vía baja la resistencia: según la ley de Poiseuille (flujo laminar ideal en un conducto cilíndrico) la resistencia es inversamente proporcional a la cuarta potencia del radio. Aun así no recupera la elasticidad del tejido ni reconstruye las paredes alveolares destruidas.', demo: Salbutamol },
+  { v: 'pr', label: 'Presiones', simple: 'La presión transpulmonar (TPP) es la presión de distensión neta aplicada al pulmón por la contracción de los músculos inspiratorios o por la ventilación con presión positiva. Es la diferencia entre la presión alveolar (Palv) y la presión pleural (Ppl).', why: 'La presión esofágica (Pes) se usa como sustituto de la Ppl, así que la TPP puede medirse con una manometría esofágica durante una oclusión al final de la inspiración o de la espiración: TPP = Palv − Pes.', demo: Presiones },
 ]
+function Presiones() {
+  return (
+    <figure>
+      <p className="font-display text-4xl font-extrabold italic tracking-tighter text-drug sm:text-5xl">TPP = Palv − Ppl</p>
+      <dl className="mt-4 max-w-lg space-y-3 text-ink/80">
+        <div><dt className="font-extrabold text-ink">Presión pleural</dt><dd>Presión del aire en la cavidad pleural, entre la pleura visceral y la parietal. Cambia con las fases de la respiración y siempre es menor (negativa) que la presión intraalveolar y que la atmosférica.</dd></div>
+        <div><dt className="font-extrabold text-ink">Presión alveolar</dt><dd>Presión del aire dentro de los alvéolos. Cambia durante la respiración y, como los alvéolos están conectados a la atmósfera por las vías respiratorias, se iguala con la presión atmosférica.</dd></div>
+      </dl>
+    </figure>
+  )
+}
+
 function Ideas() {
   const [v, setV] = useState('st')
   const cur = IDEAS.find((x) => x.v === v)
   const Demo = cur.demo
   return (
     <Band theme="ideas">
-      <h2 className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--accent)' }}>Tres ideas para el simulador</h2>
+      <h2 className="text-xs font-bold uppercase tracking-[0.16em]" style={{ color: 'var(--accent)' }}>Ideas para el simulador</h2>
       <Rv>
         <Tabs label="Concepto" value={v} onChange={setV} className="mt-3 flex-wrap !gap-x-8 [&_button]:pb-1 [&_button]:font-display [&_button]:text-3xl [&_button]:font-extrabold [&_button]:tracking-tight sm:[&_button]:text-5xl"
           options={IDEAS.map((x) => ({ value: x.v, label: x.label }))} />
@@ -217,6 +244,7 @@ function Ideas() {
           <p className="mt-1 text-lg text-ink/85">{cur.simple}</p>
           <h3 className="mt-5 font-sans text-xs font-bold uppercase tracking-[0.14em] text-ink/60">Por qué importa aquí</h3>
           <p className="mt-1 text-lg font-semibold">{cur.why}</p>
+          {cur.more && <><h3 className="mt-5 font-sans text-xs font-bold uppercase tracking-[0.14em] text-ink/60">Más detalle</h3><p className="mt-1 text-ink/80">{cur.more}</p></>}
         </section>
         <Demo />
       </article>
@@ -238,6 +266,11 @@ const GLOS = [
   ['FVC', 'Capacidad vital forzada: aire exhalado con fuerza tras una inhalación total.'],
   ['FEV₁', 'Volumen espiratorio forzado en el primer segundo.'],
   ['FEV₁/FVC', 'Fracción del aire que se exhala en el primer segundo respecto a la FVC.'],
+  ['Presión transpulmonar (TPP)', 'Presión de distensión neta aplicada al pulmón. Es la diferencia entre la presión alveolar y la pleural: TPP = Palv − Ppl.'],
+  ['Presión pleural (Ppl)', 'Presión del aire en la cavidad pleural, entre la pleura visceral y la parietal. Es menor (negativa) que la presión intraalveolar y la atmosférica.'],
+  ['Presión alveolar (Palv)', 'Presión del aire dentro de los alvéolos. Cambia durante la respiración y se iguala con la presión atmosférica.'],
+  ['Presión esofágica (Pes)', 'Se usa como sustituto de la presión pleural: TPP = Palv − Pes.'],
+  ['Histéresis', 'Las curvas de inspiración y espiración siguen trayectorias distintas: para un mismo volumen, la presión puede ser diferente.'],
 ]
 function Glossary() {
   return (

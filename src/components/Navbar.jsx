@@ -3,7 +3,9 @@ import { useEffect, useRef } from 'react'
 const LINKS = [
   ['problema', 'Marco biofísico', '#0369a1'],
   ['simulador', 'Simulador', '#047857'],
+  ['analisis', 'Análisis', '#0369a1'],
   ['desafio', 'Juego', '#be123c'],
+  ['conclusiones', 'Conclusiones', '#0f766e'],
   ['referencias', 'Referencias', '#334155'],
 ]
 

@@ -4,7 +4,9 @@ import Navbar from './components/Navbar'
 import Hero from './sections/Hero'
 import Problem from './sections/Problem'
 import Simulator from './sections/Simulator'
+import Analysis from './sections/Analysis'
 import Game from './sections/Game'
+import Conclusions from './sections/Conclusions'
 import References from './sections/References'
 import { prefersReduced } from './hooks/useBreath'
 
@@ -37,7 +39,9 @@ export default function App() {
         <Hero />
         <Problem />
         <Simulator />
+        <Analysis />
         <Game />
+        <Conclusions />
         <References />
       </main>
     </>

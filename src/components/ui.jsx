@@ -13,6 +13,8 @@ export const THEMES = {
   stage: { bg: '#ffffff', accent: '#047857' },
   spiro: { bg: '#f0fdf4', accent: '#15803d' },
   mech: { bg: '#f8fafc', accent: '#0e7490' },
+  analysis: { bg: '#f0f9ff', accent: '#0369a1' },
+  concl: { bg: '#f0fdfa', accent: '#0f766e' },
   game: { bg: '#07131c', accent: '#34d399', dark: true },
   refs: { bg: '#f1f5f9', accent: '#334155' },
 }

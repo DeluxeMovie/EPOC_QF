@@ -28,6 +28,7 @@ const ResultsTable = memo(function ResultsTable({ treatment }) {
   const rows = [
     ['FVC (L)', (d) => fmt(d.fvc, 2)], ['FVC (% de lo esperado)', (d) => fmt(d.pt[0])],
     ['FEV₁ (L)', (d) => fmt(d.fev1, 2)], ['FEV₁ (% de lo esperado)', (d) => fmt(d.pt[1])], ['FEV₁/FVC (%)', (d) => fmt(d.ratio)],
+    ['Índice Z de la FVC', (d) => fmt(d.z[0], 2)], ['Índice Z del FEV₁', (d) => fmt(d.z[1], 2)], ['Índice Z del FEV₁/FVC', (d) => fmt(d.z[2], 2)],
   ]
   const th = 'py-2 pl-4 text-right text-xs font-bold uppercase tracking-wide'
   return (
@@ -142,7 +143,7 @@ const AIRWAYS = [
 ]
 const WHY = [
   ['Qué hace', 'Relaja el músculo liso que envuelve los bronquios y los bronquiolos, aumenta el diámetro de las vías aéreas y disminuye la resistencia al flujo del aire.'],
-  ['Qué mostraron las espirometrías', 'En la persona sana el FEV₁ pasó de 2,08 a 2,10 L. En la persona con EPOC pasó de 0,95 a 1,02 L.'],
+  ['Qué mostraron las espirometrías', 'En la persona sana el FEV₁ pasó de 2,08 a 2,10 L. En la persona con EPOC pasó de 0,95 a 1,02 L y el FEV₁/FVC de 54,8 a 58,0 %. Es una mejora pequeña: por sí sola no permite establecer una respuesta broncodilatadora clínicamente significativa.'],
   ['Familias de broncodilatadores', 'Se agrupan en tres: agonistas beta-2 adrenérgicos, anticolinérgicos y metilxantinas.'],
 ]
 const SalbutamolBand = memo(function SalbutamolBand() {
@@ -193,7 +194,7 @@ const SpiroBand = memo(function SpiroBand({ treatment, pickTreatment, tSp, setTS
           ['Eje horizontal', 'segundos desde que empiezas a soplar.'],
           ['Eje vertical', 'litros de aire acumulados que se han expulsado.'],
           ['Líneas', 'discontinua = antes del salbutamol; continua = después. La más gruesa es la que elegiste.'],
-          ['Qué notar', 'fíjate en qué tan inclinada sube la curva: si sube empinada al inicio, el aire salió en muy poco tiempo. La meseta, cuando la curva se aplana, indica que ya no sale más aire.'],
+          ['Qué notar', 'la inclinación de la curva es la velocidad con la que sale el aire (flujo espiratorio): pendiente pronunciada, mucho aire en poco tiempo. La meseta indica que el volumen se acerca a su máximo y ya casi no cambia.'],
         ]} />
         <HowTo title="Tres números que debes conocer" items={[
           ['FVC', 'capacidad vital forzada: el aire exhalado con fuerza después de una inhalación total (la línea punteada horizontal).'],
@@ -235,7 +236,7 @@ const SpiroBand = memo(function SpiroBand({ treatment, pickTreatment, tSp, setTS
         <ResultsTable treatment={treatment} />
       </details>
       <Note label="Valores esperados e índice Z" className="mt-6">
-        El voluntario 1 obtiene una FVC de 2,88 L frente a un valor teórico de 2,84 L, y un índice Z de +0,11. El voluntario 2 queda por debajo de lo esperado: su FVC tiene un índice Z de −0,87, pero la desviación más marcada está en el FEV₁ (Z = −2,16) y en el FEV₁/FVC (Z = −2,40), coherentes con un patrón obstructivo. Se considera crítico un valor cercano a −1,645.
+        El voluntario 1 tiene una FVC de 2,88 L frente a un valor teórico de 2,84 L (índice Z +0,11), pero su FEV₁/FVC de 72,2 % tiene un índice Z de −2,05, por debajo del límite inferior de referencia. El voluntario 2 tiene un índice Z de −2,16 en el FEV₁ y de −2,40 en el FEV₁/FVC, ambos por debajo de sus límites inferiores.
       </Note>
     </Band>
   )
@@ -255,7 +256,7 @@ const MechCharts = memo(function MechCharts({ playing, manualP, manualLimb, mS, 
           ['Compara', 'el pulmón sano (verde) con el de EPOC (rojo).'],
           ['Horizontal', 'la presión con la que se infla; vertical: cuánto aire cabe (litros).'],
           ['Línea continua', 'al inspirar; punteada: al espirar.'],
-          ['Qué notar', 'cuando se altera el equilibrio del surfactante, cambia la relación presión-volumen.'],
+          ['Qué notar', 'las dos líneas no coinciden: es la histéresis. Para un mismo volumen, la presión es distinta al inflar y al desinflar, en parte por la acción dinámica del surfactante. Si se altera su equilibrio, cambia la relación presión-volumen.'],
         ]} />
         <p className="mt-4 font-semibold">Arrastra los puntos sobre la curva: a la derecha inflas, a la izquierda desinflas.</p>
         <PVChart P={b.P} limb={b.limb} mS={mS} mE={mE} onGrab={grabPV} onChange={onPV} />

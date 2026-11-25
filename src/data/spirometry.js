@@ -8,16 +8,16 @@ import { clamp } from '../lib/physics'
 export const SPIRO = {
   sano: {
     label: 'Pulmón sano',
-    pre: { fvc: 2.88, fev1: 2.08, ratio: 72.2, pt: [101.3, 85.5] },
-    post: { fvc: 2.9, fev1: 2.1, ratio: 72.3, pt: [102.2, 86.4] },
+    pre: { fvc: 2.88, fev1: 2.08, ratio: 72.2, pt: [101.3, 85.5], z: [0.11, -1.26, -2.05] },
+    post: { fvc: 2.9, fev1: 2.1, ratio: 72.3, pt: [102.2, 86.4], z: [0.19, -1.18, -2.04] },
     change: [0.9, 0.9, 0.1],
     shape: { a: [0.8, 0.8], t2: [1.8, 1.8] },
     end: '≈ 5–8 s',
   },
   epoc: {
     label: 'Pulmón con EPOC',
-    pre: { fvc: 1.73, fev1: 0.95, ratio: 54.8, pt: [83.7, 59.7] },
-    post: { fvc: 1.76, fev1: 1.02, ratio: 58.0, pt: [85.2, 64.4] },
+    pre: { fvc: 1.73, fev1: 0.95, ratio: 54.8, pt: [83.7, 59.7], z: [-0.87, -2.16, -2.4] },
+    post: { fvc: 1.76, fev1: 1.02, ratio: 58.0, pt: [85.2, 64.4], z: [-0.79, -1.92, -2.1] },
     change: [1.6, 4.6, 4.1],
     shape: { a: [0.55, 0.58], t2: [6, 5.5] },
     end: 'hasta ≈ 14 s',
